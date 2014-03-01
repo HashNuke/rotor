@@ -1,0 +1,12 @@
+{application, wilcog,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { wilcog_app, []}},
+  {env, []}
+ ]}.
