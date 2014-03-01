@@ -12,9 +12,5 @@ compile(Source, MetaData, Options)->
 
 
 get_stylish_options(Options)->
-  case proplists:get_value(<<"compressed">>, Options, false) of
-    true ->
-      [{"style", "compressed"}];
-    _ ->
-      []
-  end.
+  Compress = proplists:get_value(<<"compress">>, Options, false),
+  [{<<"compress">>, Compress}.

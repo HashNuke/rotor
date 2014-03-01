@@ -51,7 +51,7 @@ If the output dir doesn't exist, wilcog will attempt to create it. The output di
 
 ```
 %% wilcog:compile(AssetPath, OutputDir)
-wilcog:compile("assets", "priv/static/assets")
+wilcog:compile(<<"assets">>, <<"priv/static/assets">>)
 
 
 %% Incase you want something else to be compiled seperately,
@@ -61,15 +61,15 @@ wilcog:compile("assets", "priv/static/assets")
 %% and you need it pre-compiled, then use `example.js` in the list.
 
 %% wilcog:compile(AssetPath, OutputDir, PreCompileList)
-wilcog:compile("assets", "priv/static/assets", ["example.js", "somethingelse.css"])
+wilcog:compile(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>, <<"somethingelse.css">>])
 
 
 %% You can also pass options as the last argument
-Options = [{"digest", false}, {"compressed", false}}]
+Options = [{<<"digest">>, false}, {<<"compress">>, false}}]
 
-wilcog:compile( "assets", "priv/static/assets", Options)
+wilcog:compile( <<"assets">>, <<"priv/static/assets">>, Options)
 
-wilcog:compile("assets", "priv/static/assets", ["example.js"], Options)
+wilcog:compile(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>], Options)
 ```
 
 
@@ -99,7 +99,7 @@ compile(SourceString, MetaData, Options)->
 
 The `OutputString` is pretty obvious. `Options` is a list and can include the following:
 
-* `{force_extension, SomeExtensionName}` - Specify an extension that is to be used for the resulting file. The first compiler that sets this, wins. Never use this unless you are desperate about being an overlord when it comes to file extensions.
+* `{<<"force_extension">>, SomeExtensionName}` - Specify an extension (as binary) that is to be used for the resulting file. The first compiler that sets this, wins. Never use this unless you are desperate about being an overlord when it comes to file extensions. Like `{<<"force_extension">>, <<".js">>}`
 
 Incase of error return `{error, Reason}` and it'll be output.
 
@@ -108,7 +108,7 @@ Incase of error return `{error, Reason}` and it'll be output.
 To teach wilcog about compiling `.sky` files, register it. Make sure wilcog is already started before you do this.
 
 ```
-ok = wilcog:add_compiler("sky", awesome_sky_compiler).
+ok = wilcog:add_compiler(<<"sky">>, awesome_sky_compiler).
 ```
 
 ## Credits
