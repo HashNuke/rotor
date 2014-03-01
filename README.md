@@ -68,23 +68,26 @@ Let's say you have templates with the ".sky" extension that is to be compiled.
 
 #### Write your compiler
 
-First write a module anywhere in your app.
+You'll need your own module which defines `compile/2`. The following are the arguments that'll be passed:
+
+* source - source string to be compiled
+* meta data - a proplist with details like file_name, modified date, etc. Mostly stuff you won't require, but just incase.
+
+Here's an example module for compiling files with `sky` extension:
 
 ```
 -module(awesome_sky_compiler).
 -exports([compile/3]).
 
 compile(SourceString, MetaData)->
-  %%% ...
-  %%% assuming you do some magic here to compile the Sky template
-  %%% ...
+  %%% assuming you do some magic here to compile the Sky code,
+  %%% return the following
   {ok, OutputString, Options}
 ```
 
 The `OutputString` is pretty obvious. `Options` is a list and can include the following:
 
-* `gzip` - enable gzip compression of assets
-* `force_extension` - Specify an extension that is to be used for the resulting file. The first compiler that sets this, wins. Never set this unless you are desperate about being an overlord when it comes to file extensions.
+* `{force_extension, SomeExtensionName}` - Specify an extension that is to be used for the resulting file. The first compiler that sets this, wins. Never use this unless you are desperate about being an overlord when it comes to file extensions.
 
 
 #### Register your compiler
