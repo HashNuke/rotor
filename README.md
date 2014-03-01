@@ -89,6 +89,7 @@ The `OutputString` is pretty obvious. `Options` is a list and can include the fo
 
 * `{force_extension, SomeExtensionName}` - Specify an extension that is to be used for the resulting file. The first compiler that sets this, wins. Never use this unless you are desperate about being an overlord when it comes to file extensions.
 
+Incase of error return `{error, Reason}` and it'll be output.
 
 #### Register your compiler
 
