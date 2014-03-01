@@ -42,24 +42,35 @@ TODO
 application:start(wilcog)
 ```
 
-#### Tell wilcog about your assets
+#### Compile assets
+
+wilcog adds application.js, application.css and every non-JS/CSS asset to the output dir. Anything else must be added explicitly.
+
+If the output dir doesn't exist, wilcog will attempt to create it. The output dir can be safely added to your `.gitignore`.
+
 
 ```
-%% wilcog:watch(AssetPath, OutputPath)
-wilcog:watch("assets", "priv/static/assets")
+%% wilcog:compile(AssetPath, OutputDir)
+wilcog:compile("assets", "priv/static/assets")
+
+
+%% Incase you want something else to be compiled seperately,
+%% list extra assets you need compiled.
+%% The list should contain expected names of assets.
+%% So if your coffeescript file is called `example.js.coffee`
+%% and you need it pre-compiled, then use `example.js` in the list.
+
+%% wilcog:compile(AssetPath, OutputDir, PreCompileList)
+wilcog:compile("assets", "priv/static/assets", ["example.js", "somethingelse.css"])
+
+
+%% You can also pass options as the last argument
+Options = [{"digest", false}, {"compressed", false}}]
+
+wilcog:compile( "assets", "priv/static/assets", Options)
+
+wilcog:compile("assets", "priv/static/assets", ["example.js"], Options)
 ```
-
-`wilcog:watch/2` adds application.js, application.css and every non-JS/CSS asset to the output dir.
-
-Incase you want something else to be compiled seperately, then use `willcog:add/3`. The last option allows you to list extra assets you need compiled. The list should contain expected names of assets. So if your coffeescript file is called `example.js.coffee` and you need it pre-compiled, then use `example.js` in the list.
-
-%% wilcog:watch(AssetPath, OutputPath, PreCompileList)
-wilcog:watch("assets", "priv/static/assets", ["example.js", "somethingelse.css"])
-```
-
-If the output dir doesn't exist, wilcog will attempt to create it. That directory can be safely added to your `.gitignore`.
-
-* For one-off compilation of assets, use `wilcog:compile/2` or `wilcog:compile/3`. They expect the same arguments as their `watch` counterparts.
 
 
 ## Extending with your own compilers
@@ -70,8 +81,9 @@ Let's say you have templates with the ".sky" extension that is to be compiled.
 
 You'll need your own module which defines `compile/2`. The following are the arguments that'll be passed:
 
-* source - source string to be compiled
+* source - source string to be compiled.
 * meta data - a proplist with details like file_name, modified date, etc. Mostly stuff you won't require, but just incase.
+* options - options set for wilcog are passed down to the compilers too.
 
 Here's an example module for compiling files with `sky` extension:
 
@@ -79,7 +91,7 @@ Here's an example module for compiling files with `sky` extension:
 -module(awesome_sky_compiler).
 -exports([compile/3]).
 
-compile(SourceString, MetaData)->
+compile(SourceString, MetaData, Options)->
   %%% assuming you do some magic here to compile the Sky code,
   %%% return the following
   {ok, OutputString, Options}
@@ -98,8 +110,6 @@ To teach wilcog about compiling `.sky` files, register it. Make sure wilcog is a
 ```
 ok = wilcog:add_compiler("sky", awesome_sky_compiler).
 ```
-
-
 
 ## Credits
 
