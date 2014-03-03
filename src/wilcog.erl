@@ -1,5 +1,5 @@
 -module(wilcog).
--export([build/2, watch/3, watch/4, watch/5, trigger/1]).
+-export([build/2, watch/3, watch/4, watch/5, rebuild/3, trigger/1]).
 
 
 default_options()->
