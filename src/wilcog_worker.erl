@@ -2,16 +2,16 @@
 -behaviour(gen_server).
 
 -export([start_link/0]).
--export([rebuild/1, watch/2]).
+-export([rebuild/1, watch/3]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 
 
 rebuild(Group) ->
-    gen_server:call(wilcog_worker, {rebuild, Group}).
+  gen_server:call(wilcog_worker, {rebuild, Group}).
 
-watch(Group, Options) ->
-  gen_server:call(wilcog_worker, {watch, Group, Options}).
+watch(Group, AssetPath, Options) ->
+  gen_server:call(wilcog_worker, {watch, Group, AssetPath, Options}).
 
 
 start_link() ->
