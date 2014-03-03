@@ -35,7 +35,7 @@ watch(Group, AssetPath, OutputPath, PrecompileList, Options)->
   validate_options(Options),
   DefaultPrecompileList = ["application.js", "application.css"],
   CleanPrecompileList = wilcog_util:binaries_to_list(DefaultPrecompileList ++ PrecompileList),
-  AllOptions = Options ++ [{"output_path", OutputPath}, {"precompile", CleanPrecompileList}],
+  AllOptions = Options ++ [{<<"output_path">>, OutputPath}, {<<"precompile">>, CleanPrecompileList}],
   CleanOptions = wilcog_util:clean_option_keys(AllOptions),
   wilcog_worker:watch(Group, AssetPath, CleanOptions).
 
