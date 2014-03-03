@@ -53,7 +53,7 @@ build(Path, Options) ->
 
 rebuild(Path, OldTree, Options)->
   NewTree = gb_trees:empty(),
-  PathProperties = [{"path", Path}],
+  PathProperties = [{<<"path">>, Path}],
   RootTree = gb_trees:enter(Path, PathProperties, NewTree),
   rebuild(Path, RootTree, OldTree, Options).
 
