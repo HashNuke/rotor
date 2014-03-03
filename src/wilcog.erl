@@ -20,30 +20,31 @@ rebuild(Path, Tree, OldTree)->
   ItemFolder = fun(Item, Acc)->
     {ParentPath, AccumulatedTree, OldTree} = Acc,
     ItemPath = filename:absname_join(ParentPath, Item),
-    NewStamp = filelib:last_modified(ItemPath),
-    ItemProps = [{"path", ItemPath}],
+    DefaultProps = [{"path", ItemPath}],
 
     case filelib:is_dir(ItemPath) of
       true -> % It's a dir. Recurse through it and update tree.
-        NewTree = gb_trees:enter(ItemPath, ItemProps, AccumulatedTree),
+        NewTree = gb_trees:enter(ItemPath, DefaultProps, AccumulatedTree),
         UpdatedTree = rebuild(ItemPath, NewTree, OldTree),
         {ParentPath, UpdatedTree, OldTree};
       false -> % It's a file. Return updated tree.
+        NewStamp = filelib:last_modified(ItemPath),
         case NewStamp of
           0 ->
             % File deleted. So just return whatever required
             {ParentPath, AccumulatedTree, OldTree};
           _ ->
             % File exists, Add output to tree
-            FileProps = [{"modified_at", NewStamp} | ItemProps],
             Output = get_output_for(ItemPath, NewStamp, OldTree),
-            UpdatedTree = gb_trees:enter(ItemPath, [{"compiled", Output} | FileProps], AccumulatedTree),
+            FileProps = [{"modified_at", NewStamp}, {"compiled", Output}] ++ DefaultProps,
+            UpdatedTree = gb_trees:enter(ItemPath, FileProps, AccumulatedTree),
             {ParentPath, UpdatedTree, OldTree}
         end
     end
   end,
 
   % The accumulator is weird, because we want function to be free of parent scope.
+  % Or atleast try to.
   {_, FinalTree, _} = lists:foldl(ItemFolder, {Path, Tree, OldTree}, Items),
   FinalTree.
 
