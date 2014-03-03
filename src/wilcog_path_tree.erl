@@ -13,8 +13,6 @@ build(Path, Tree)->
 
   ItemFolder = fun(Item, Acc)->
     {ParentPath, AccumulatedTree} = Acc,
-    % ParentProps = gb_trees:get(Path, AccumulatedTree),
-    % ParentPath = proplists:get_value("path", ParentProps),
     ItemPath = filename:absname_join(ParentPath, Item),
     LastModifiedAt = filelib:last_modified(ItemPath),
     ItemProperties = [{"path", ItemPath}],
@@ -63,4 +61,5 @@ rebuild(Path, OldTree)->
   end,
 
 
-  lists:foldl(ItemFold, {NewTree, OldTree}, NewKeys).
+  {Finaltree, _ } = lists:foldl(ItemFold, {NewTree, OldTree}, NewKeys).
+  FinalTree.
