@@ -1,5 +1,5 @@
 -module(wilcog).
--export([build/1, rebuild/2, rebuild/3]).
+-export([build/1, build/2, rebuild/3, rebuild/4]).
 
 
 build(Path) ->
