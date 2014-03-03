@@ -113,7 +113,7 @@ get_output_for(ItemPath, NewStamp, OldTree, Options) ->
 compile_string(String, FileInfo, Options) ->
   Compilers = [{<<"scss">>, wilcog_scss_compiler}],
   File = proplists:get_value(<<"path">>, FileInfo),
-  Extensions = tl(string:tokens(File, ".")),
+  Extensions = tl(string:tokens(binary_to_list(File), ".")),
 
   case length(Extensions) of
     0 -> "";
