@@ -52,8 +52,8 @@ If the output dir doesn't exist, wilcog will attempt to create it. The output di
 
 
 ```
-%% wilcog:compile(AssetPath, OutputDir)
-wilcog:compile(<<"assets">>, <<"priv/static/assets">>)
+%% wilcog:watch(AssetPath, OutputDir)
+wilcog:watch(<<"assets">>, <<"priv/static/assets">>)
 
 
 %% Incase you want something else to be compiled seperately,
@@ -62,16 +62,16 @@ wilcog:compile(<<"assets">>, <<"priv/static/assets">>)
 %% So if your coffeescript file is called `example.js.coffee`
 %% and you need it pre-compiled, then use `example.js` in the list.
 
-%% wilcog:compile(AssetPath, OutputDir, PreCompileList)
-wilcog:compile(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>, <<"somethingelse.css">>])
+%% wilcog:watch(AssetPath, OutputDir, PreCompileList)
+wilcog:watch(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>, <<"somethingelse.css">>])
 
 
 %% You can also pass options as the last argument
 Options = [{<<"digest">>, false}, {<<"compress">>, false}}]
 
-wilcog:compile( <<"assets">>, <<"priv/static/assets">>, Options)
+wilcog:watch( <<"assets">>, <<"priv/static/assets">>, Options)
 
-wilcog:compile(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>], Options)
+wilcog:watch(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>], Options)
 ```
 
 `compress` and `digest` are the only two options available now. Valid values for both are booleans.
