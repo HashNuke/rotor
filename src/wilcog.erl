@@ -1,7 +1,110 @@
 -module(wilcog).
--export([request_compile/2]).
+-export([build/1, rebuild/2, rebuild/3]).
 
 
-request_compile(Group, SubPath)->
-  %% TODO imaginary
-  gen_server.call(:requested, [SubPath])
+build(Path) ->
+  OldTree = gb_trees:empty(),
+  rebuild(Path, OldTree).
+
+
+rebuild(Path, OldTree)->
+  NewTree = gb_trees:empty(),
+  PathProperties = [{"path", Path}],
+  RootTree = gb_trees:enter(Path, PathProperties, NewTree),
+  rebuild(Path, RootTree, OldTree).
+
+
+rebuild(Path, Tree, OldTree)->
+  {ok, Items} = file:list_dir_all(Path),
+
+  ItemFolder = fun(Item, Acc)->
+    {ParentPath, AccumulatedTree, OldTree} = Acc,
+    ItemPath = filename:absname_join(ParentPath, Item),
+    NewStamp = filelib:last_modified(ItemPath),
+    ItemProps = [{"path", ItemPath}],
+
+    case filelib:is_dir(ItemPath) of
+      true -> % It's a dir. Recurse through it and update tree.
+        NewTree = gb_trees:enter(ItemPath, ItemProps, AccumulatedTree),
+        UpdatedTree = rebuild(ItemPath, NewTree, OldTree),
+        {ParentPath, UpdatedTree, OldTree};
+      false -> % It's a file. Return updated tree.
+        case NewStamp of
+          0 ->
+            % File deleted. So just return whatever required
+            {ParentPath, AccumulatedTree, OldTree};
+          _ ->
+            % File exists, Add output to tree
+            FileProps = [{"modified_at", NewStamp} | ItemProps],
+            Output = get_output_for(ItemPath, NewStamp, OldTree),
+            UpdatedTree = gb_trees:enter(ItemPath, [{"compiled", Output} | FileProps], AccumulatedTree),
+            {ParentPath, UpdatedTree, OldTree}
+        end
+    end
+  end,
+
+  % The accumulator is weird, because we want function to be free of parent scope.
+  {_, FinalTree, _} = lists:foldl(ItemFolder, {Path, Tree, OldTree}, Items),
+  FinalTree.
+
+
+get_output_for(ItemPath, NewStamp, OldTree) ->
+  case gb_trees:lookup(ItemPath, OldTree) of
+    {value, OldProps} ->
+      OldStamp = proplists:get_value("modified_at", OldProps),
+      case NewStamp of
+        undefined ->
+          compile_file(ItemPath);
+        OldStamp ->
+          proplists:get_value("compiled", OldProps);
+        _ ->
+          compile_file(ItemPath)
+      end;
+    none ->
+      compile_file(ItemPath)
+  end.
+
+
+compile_string(String, FileInfo, Options) ->
+  Compilers = [{"scss", wilcog_scss_compiler}],
+  File = proplists:get_value(<<"path">>, FileInfo),
+  Extensions = tl(string:tokens(File, ".")),
+
+  case length(Extensions) of
+    0 -> "";
+    _ ->
+      RunExtensions = fun(Extension, Acc)->
+        {Source, MetaData, Options} = Acc,
+        ExtensionCompiler = proplists:get_value(Extension, Compilers, wilcog_default_compiler),
+        {Output, UpdatedOptions} = compile(ExtensionCompiler, Source, MetaData, Options),
+        {Output, MetaData, UpdatedOptions}
+      end,
+
+      FileMeta = [{<<"extensions">>, Extensions} | FileInfo],
+      {CompiledOutput, _, _} = list:foldl(RunExtensions, {String, FileMeta, Options}, Extensions),
+      CompiledOutput
+  end.
+
+
+compile_file(Path)->
+  File = filename:basename(Path),
+
+  case file:read_file(File) of
+    {ok, FileContents} ->
+      compile_string(FileContents, [{<<"path">>, File}], []);
+
+    {error, Reason}->
+      erlang:display(File),
+      erlang:display(Reason),
+      "" %because the other files can be compiled
+  end.
+
+
+compile(Compiler, Source, MetaData, Options)->
+  case Compiler:compile(Source, MetaData, Options) of
+    {ok, Output, _ReturnedOptions} ->
+      % TODO actually merge the returned options with defaults
+      {Output, Options};
+    {ok, Output} ->
+      {Output, Options}
+  end.
