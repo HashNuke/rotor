@@ -39,7 +39,7 @@ rebuild(Path, OldTree)->
 
 
   ItemFold = fun(ItemPath, Acc)->
-    {NewTree, OldTree} = Acc,
+    {CurrentTree, OldTree} = Acc,
     NewStamp = filelib:last_modified(ItemPath),
     NewProps = [
       {"path", ItemPath},
@@ -58,7 +58,7 @@ rebuild(Path, OldTree)->
       none ->
         todo %TODO
     end,
-    UpdatedTree = gb_trees:enter(ItemPath, [{"compiled", Output} | NewProps], Newtree),
+    UpdatedTree = gb_trees:enter(ItemPath, [{"compiled", Output} | NewProps], CurrentTree),
     {UpdatedTree, OldTree}
   end,
 
