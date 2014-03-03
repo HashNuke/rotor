@@ -15,6 +15,6 @@ compile(_Source, MetaData, Options)->
       hd(tl(Parts))
   end,
   OutputName = string:join([MainName, ExtensionName], "."),
-  OutputFile = filename:absname_join(binary_to_list(OutputPath), OutputName),
+  OutputFile = filename:absname_join(OutputPath, OutputName),
   {ok, _} = file:copy(Path, OutputFile),
   {ok, ""}.

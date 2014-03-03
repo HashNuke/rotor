@@ -119,22 +119,23 @@ compile_string(String, FileInfo, Options) ->
     0 -> "";
     _ ->
       RunExtensions = fun(Extension, Acc)->
-        {Source, MetaData, Options} = Acc,
+        {Source, MetaData, RuntimeOptions, Options} = Acc,
         ExtensionCompiler = proplists:get_value(list_to_binary(Extension), Compilers, wilcog_default_compiler),
-        {Output, UpdatedOptions} = compile(ExtensionCompiler, Source, MetaData, Options),
-        {Output, MetaData, UpdatedOptions}
+        {Output, ReturnedOptions} = compile(ExtensionCompiler, Source, MetaData, Options),
+        {Output, MetaData, merge_options(RuntimeOptions, ReturnedOptions), Options}
       end,
 
       FileMeta = [{<<"extensions">>, Extensions} | FileInfo],
-      {CompiledOutput, _, _} = lists:foldl(RunExtensions, {String, FileMeta, Options}, Extensions),
-      CompiledOutput
+      {CompiledOutput, _, ReturnedOptions, _} = lists:foldl(RunExtensions, {String, FileMeta, [], Options}, Extensions),
+      {CompiledOutput, ReturnedOptions}
   end.
 
 
 compile_file(Path, Options)->
   case file:read_file(Path) of
     {ok, FileContents} ->
-      compile_string(FileContents, [{<<"path">>, Path}], Options);
+      {Output, _ReturnedOptions} = compile_string(FileContents, [{<<"path">>, Path}], Options),
+      Output;
 
     {error, Reason}->
       erlang:display("Read failed"),
@@ -146,9 +147,15 @@ compile_file(Path, Options)->
 
 compile(Compiler, Source, MetaData, Options)->
   case Compiler:compile(Source, MetaData, Options) of
-    {ok, Output, _ReturnedOptions} ->
-      % TODO actually merge the returned options with defaults
-      {Output, Options};
+    {ok, Output, ReturnedOptions} ->
+      {Output, ReturnedOptions};
     {ok, Output} ->
-      {Output, Options}
+      {Output, []}
   end.
+
+merge_options(OldOptions, NewOptions)->
+  Old = dict:from_list(OldOptions),
+  New = dict:from_list(NewOptions),
+  CleanOptions = dict:merge(fun(_K, OldOption, _NewOption)-> OldOption end, Old, New),
+  dict:to_list(CleanOptions).
+

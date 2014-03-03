@@ -44,6 +44,15 @@ handle_call({rebuild, Group}, _From, State) ->
       {reply, ok, NewState};
     error ->
       {reply, no_group_found, State}
+  end;
+
+
+handle_call({group_state, Group}, _From, State)->
+  case dict:find(Group, State) of
+    {ok, GroupInfo} ->
+      {reply, GroupInfo, State};
+    error ->
+      {reply, no_group_found, State}
   end.
 
 
