@@ -1,5 +1,5 @@
 -module(wilcog_path_tree).
--export([build/1, build/2]).
+-export([build/1, build/2, rebuild/2]).
 
 build(Path)->
   NewTree = gb_trees:empty(),
@@ -11,9 +11,10 @@ build(Path)->
 build(Path, Tree)->
   {ok, Items} = file:list_dir_all(Path),
 
-  ItemFolder = fun(Item, AccumulatedTree)->
-    ParentProps = gb_trees:get(Path, AccumulatedTree),
-    ParentPath = proplists:get_value("path", ParentProps),
+  ItemFolder = fun(Item, Acc)->
+    {ParentPath, AccumulatedTree} = Acc,
+    % ParentProps = gb_trees:get(Path, AccumulatedTree),
+    % ParentPath = proplists:get_value("path", ParentProps),
     ItemPath = filename:absname_join(ParentPath, Item),
     LastModifiedAt = filelib:last_modified(ItemPath),
     ItemProperties = [{"path", ItemPath}],
@@ -21,10 +22,45 @@ build(Path, Tree)->
     case filelib:is_dir(ItemPath) of
       true ->
         UpdatedTree = gb_trees:enter(ItemPath, ItemProperties, AccumulatedTree),
-        build(ItemPath, UpdatedTree);
+        {ItemPath, build(ItemPath, UpdatedTree)};
       _ ->
         FileProps = [{"modified_at", LastModifiedAt} | ItemProperties],
-        gb_trees:enter(ItemPath, FileProps, AccumulatedTree)
+        {ItemPath, gb_trees:enter(ItemPath, FileProps, AccumulatedTree)}
     end
   end,
-  lists:foldl(ItemFolder, Tree, Items).
+
+  {_, FinalTree} = lists:foldl(ItemFolder, {Path, Tree}, Items),
+  FinalTree.
+
+
+rebuild(Path, OldTree)->
+  NewTree = build(Path),
+  NewKeys = gb_trees:keys(NewTree),
+
+
+  ItemFold = fun(ItemPath, Acc)->
+    {NewTree, OldTree} = Acc,
+    NewStamp = filelib:last_modified(ItemPath),
+    NewProps = [
+      {"path", ItemPath},
+      {"modified_at", NewStamp}
+    ],
+
+    Output = case gb_trees:lookup(ItemPath, OldTree) of
+      {value, OldProps} ->
+        OldStamp = proplists:get_value("modified_at", OldProps),
+        case NewStamp of
+          OldStamp ->
+            proplists:get_value("compiled", OldProps);
+          _ ->
+            todo %TODO
+        end;
+      none ->
+        todo %TODO
+    end,
+    UpdatedTree = gb_trees:enter(ItemPath, [{"compiled", Output} | NewProps], Newtree),
+    {UpdatedTree, OldTree}
+  end,
+
+
+  lists:foldl(ItemFold, {NewTree, OldTree}, NewKeys).
