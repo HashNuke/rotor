@@ -1,5 +1,7 @@
 # wilcog
 
+__Work in Progress__
+
 > Erlang asset pipeline
 
 #### Features
@@ -71,6 +73,8 @@ wilcog:compile( <<"assets">>, <<"priv/static/assets">>, Options)
 
 wilcog:compile(<<"assets">>, <<"priv/static/assets">>, [<<"example.js">>], Options)
 ```
+
+`compress` and `digest` are the only two options available now. Valid values for both are booleans.
 
 
 ## Extending with your own compilers

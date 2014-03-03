@@ -3,18 +3,23 @@
 
 
 build(Path) ->
+  Options = [{<<"digest">>, true}, {<<"compress">>, false}],
+  build(Path, Options).
+
+
+build(Path, Options) ->
   OldTree = gb_trees:empty(),
-  rebuild(Path, OldTree).
+  rebuild(Path, OldTree, Options).
 
 
-rebuild(Path, OldTree)->
+rebuild(Path, OldTree, Options)->
   NewTree = gb_trees:empty(),
   PathProperties = [{"path", Path}],
   RootTree = gb_trees:enter(Path, PathProperties, NewTree),
   rebuild(Path, RootTree, OldTree).
 
 
-rebuild(Path, Tree, OldTree)->
+rebuild(Path, Tree, OldTree, Options)->
   {ok, Items} = file:list_dir_all(Path),
 
   ItemFolder = fun(Item, Acc)->
