@@ -130,14 +130,13 @@ compile_string(String, FileInfo, Options) ->
 
 
 compile_file(Path, Options)->
-  File = filename:basename(Path),
-
-  case file:read_file(File) of
+  case file:read_file(Path) of
     {ok, FileContents} ->
-      compile_string(FileContents, [{<<"path">>, File}], Options);
+      compile_string(FileContents, [{<<"path">>, Path}], Options);
 
     {error, Reason}->
-      erlang:display(File),
+      erlang:display("Read failed"),
+      erlang:display(Path),
       erlang:display(Reason),
       "" %because the other files can be compiled
   end.
