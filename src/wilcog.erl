@@ -124,7 +124,7 @@ compile_string(String, FileInfo, Options) ->
       end,
 
       FileMeta = [{<<"extensions">>, Extensions} | FileInfo],
-      {CompiledOutput, _, _} = list:foldl(RunExtensions, {String, FileMeta, Options}, Extensions),
+      {CompiledOutput, _, _} = lists:foldl(RunExtensions, {String, FileMeta, Options}, Extensions),
       CompiledOutput
   end.
 
