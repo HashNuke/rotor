@@ -5,7 +5,7 @@ compile(_Source, MetaData, Options)->
   Path = proplists:get_value(<<"path">>, MetaData),
   OutputPath = proplists:get_value(<<"output_path">>, Options),
   File = filename:basename(Path),
-  Parts = string:tokens(File, "."),
+  Parts = string:tokens(binary_to_list(File), "."),
   MainName = hd(Parts),
 
   ExtensionName = case length(Parts) of

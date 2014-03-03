@@ -35,9 +35,11 @@ watch(Group, AssetPath, OutputPath, PrecompileList, Options)->
   validate_options(Options),
   DefaultPrecompileList = ["application.js", "application.css"],
   CleanPrecompileList = wilcog_util:binaries_to_list(DefaultPrecompileList ++ PrecompileList),
-  AllOptions = Options ++ [{<<"output_path">>, OutputPath}, {<<"precompile">>, CleanPrecompileList}],
-  CleanOptions = wilcog_util:clean_option_keys(AllOptions),
-  wilcog_worker:watch(Group, AssetPath, CleanOptions).
+  AllOptions = Options ++ [
+    {<<"output_path">>, OutputPath},
+    {<<"precompile">>, CleanPrecompileList}
+  ],
+  wilcog_worker:watch(Group, AssetPath, AllOptions).
 
 
 trigger(Group)->
@@ -62,7 +64,7 @@ rebuild(Path, Tree, OldTree, Options)->
   ItemFolder = fun(Item, Acc)->
     {ParentPath, AccumulatedTree, OldTree} = Acc,
     ItemPath = filename:absname_join(ParentPath, Item),
-    DefaultProps = [{"path", ItemPath}],
+    DefaultProps = [{<<"path">>, ItemPath}],
 
     case filelib:is_dir(ItemPath) of
       true -> % It's a dir. Recurse through it and update tree.
@@ -78,7 +80,7 @@ rebuild(Path, Tree, OldTree, Options)->
           _ ->
             % File exists, Add output to tree
             Output = get_output_for(ItemPath, NewStamp, OldTree, Options),
-            FileProps = [{"modified_at", NewStamp}, {"compiled", Output}] ++ DefaultProps,
+            FileProps = [{<<"modified_at">>, NewStamp}, {<<"compiled">>, Output}] ++ DefaultProps,
             UpdatedTree = gb_trees:enter(ItemPath, FileProps, AccumulatedTree),
             {ParentPath, UpdatedTree, OldTree}
         end
@@ -94,13 +96,12 @@ rebuild(Path, Tree, OldTree, Options)->
 get_output_for(ItemPath, NewStamp, OldTree, Options) ->
   case gb_trees:lookup(ItemPath, OldTree) of
     {value, OldProps} ->
-      erland:display(OldProps).
-      OldStamp = proplists:get_value("modified_at", OldProps),
+      OldStamp = proplists:get_value(<<"modified_at">>, OldProps),
       case NewStamp of
         undefined ->
           compile_file(ItemPath, Options);
         OldStamp ->
-          proplists:get_value("compiled", OldProps);
+          proplists:get_value(<<"compiled">>, OldProps);
         _ ->
           compile_file(ItemPath, Options)
       end;
@@ -110,7 +111,7 @@ get_output_for(ItemPath, NewStamp, OldTree, Options) ->
 
 
 compile_string(String, FileInfo, Options) ->
-  Compilers = [{"scss", wilcog_scss_compiler}],
+  Compilers = [{<<"scss">>, wilcog_scss_compiler}],
   File = proplists:get_value(<<"path">>, FileInfo),
   Extensions = tl(string:tokens(File, ".")),
 
@@ -119,7 +120,7 @@ compile_string(String, FileInfo, Options) ->
     _ ->
       RunExtensions = fun(Extension, Acc)->
         {Source, MetaData, Options} = Acc,
-        ExtensionCompiler = proplists:get_value(Extension, Compilers, wilcog_default_compiler),
+        ExtensionCompiler = proplists:get_value(list_to_binary(Extension), Compilers, wilcog_default_compiler),
         {Output, UpdatedOptions} = compile(ExtensionCompiler, Source, MetaData, Options),
         {Output, MetaData, UpdatedOptions}
       end,
