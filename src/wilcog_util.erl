@@ -1,5 +1,5 @@
 -module(wilcog_util).
--exports([is_proplist/1, binaries_to_list/1, clean_option_keys/1]).
+-export([is_proplist/1, binaries_to_list/1, clean_option_keys/1]).
 
 
 binaries_to_list(List)->
