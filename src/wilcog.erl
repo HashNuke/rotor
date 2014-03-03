@@ -67,7 +67,7 @@ rebuild(Path, Tree, OldTree, Options)->
     case filelib:is_dir(ItemPath) of
       true -> % It's a dir. Recurse through it and update tree.
         NewTree = gb_trees:enter(ItemPath, DefaultProps, AccumulatedTree),
-        UpdatedTree = rebuild(ItemPath, NewTree, OldTree),
+        UpdatedTree = rebuild(ItemPath, NewTree, OldTree, Options),
         {ParentPath, UpdatedTree, OldTree};
       false -> % It's a file. Return updated tree.
         NewStamp = filelib:last_modified(ItemPath),
@@ -94,6 +94,7 @@ rebuild(Path, Tree, OldTree, Options)->
 get_output_for(ItemPath, NewStamp, OldTree, Options) ->
   case gb_trees:lookup(ItemPath, OldTree) of
     {value, OldProps} ->
+      erland:display(OldProps).
       OldStamp = proplists:get_value("modified_at", OldProps),
       case NewStamp of
         undefined ->
