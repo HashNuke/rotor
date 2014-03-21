@@ -1,161 +1,117 @@
 -module(wilcog).
--export([build/2, watch/3, watch/4, watch/5, rebuild/3, trigger/1]).
+-export([compile/2, compile/3]).
 
 
-default_options()->
-  [{<<"digest">>, true}, {<<"compress">>, false}].
-
-
-validate_options(Options)->
-  Validator = fun({Key, _Value})->
-    ValidOptions = [<<"digest">>, <<"compress">>],
-    case lists:member(Key, ValidOptions) of
-      true -> true;
-      false -> throw(string:join(["Invalid option:", binary_to_list(Key)], " "))
-    end
-  end,
-
-  lists:filter(Validator, Options).
-
-
-watch(Group, AssetPath, OutputPath)->
-  watch(Group, AssetPath, OutputPath, [], default_options()).
-
-
-watch(Group, AssetPath, OutputPath, Arg1)->
-  case wilcog_util:is_proplist(Arg1) of
-    true -> % if it's a proplist it's options
-      watch(Group, AssetPath, OutputPath, [], Arg1);
-    false -> % if not it's the precompile list
-      watch(Group, AssetPath, OutputPath, Arg1, [])
-  end.
-
-
-watch(Group, AssetPath, OutputPath, PrecompileList, Options)->
-  validate_options(Options),
+compile(AssetPath, OutputPath)->
+  compile(AssetPath, OutputPath, []);
+compile(AssetPath, OutputPath, Options)->
   DefaultPrecompileList = ["application.js", "application.css"],
-  CleanPrecompileList = wilcog_util:binaries_to_list(DefaultPrecompileList ++ PrecompileList),
-  AllOptions = Options ++ [
-    {<<"output_path">>, OutputPath},
-    {<<"precompile">>, CleanPrecompileList}
-  ],
-  wilcog_worker:watch(Group, AssetPath, AllOptions).
+  ExtraPrecompileList = proplists:get_value(precompile, Options, []),
+  PrecompileList = DefaultPrecompileList ++ ExtraPrecompileList,
+  Graph = wilcog_file_tree:build(AssetPath),
+
+  PrecompileVertices = get_vertices_of_precompile_list(Graph, PrecompileList),
+  create_dir_if_not_exists(OutputPath),
+
+  compile_assets(PrecompileVertices, Graph, OutputPath, Options).
 
 
-trigger(Group)->
-  wilcog_worker:rebuild(Group).
+get_vertices_of_precompile_list(Graph, PrecompileList)->
+  Elements = digraph_utils:topsort(Graph),
+
+  FoldFunction = fun(Name, {PrecompileVertices, PrecompileList})->
+    {Vertex, Data} = digraph:vertex(Graph, Name),
+    OutputFileName = proplists:get_value(output, Data),
+    if
+      lists:member(OutputFileName, PrecompileList) ->
+        {PrecompileVertices ++ [Vertex], PrecompileList};
+      true ->
+        {PrecompileVertices, PrecompileList}
+    end,
+  end,
+  {PrecompileVertices, _} = lists:foldr(FoldFunction, {[], PrecompileList}, Elements),
+  PrecompileVertices.
 
 
-build(Path, Options) ->
-  OldTree = gb_trees:empty(),
-  rebuild(Path, OldTree, Options).
+create_dir_if_not_exists(Path) ->
+  if
+    !filelib:is_dir(Path) ->
+      ok = file:make_dir(Path);
+    true ->
+      ok
+  end.
 
 
-rebuild(Path, OldTree, Options)->
-  NewTree = gb_trees:empty(),
-  PathProperties = [{<<"path">>, Path}],
-  RootTree = gb_trees:enter(Path, PathProperties, NewTree),
-  rebuild(Path, RootTree, OldTree, Options).
+write_file(FilePath, Contents) ->
+  {ok, IODevice} = file:open(FilePath, [write]),
+  file:write(IODevice, Contents),
+  file:close(IODevice).
 
 
-rebuild(Path, Tree, OldTree, Options)->
-  {ok, Items} = file:list_dir_all(Path),
+compile_assets([], _Graph, _OutputPath, _Options) ->
+  ok;
+compile_assets([Vertex|OtherVertices], Graph, OutputPath, Options) ->
+  {_, Data} = digraph:vertex(Graph, Vertex),
+  Dependencies = proplists:get_value(dependencies, Data),
+  OutputFileName = proplists:get_value(output, Data),
+  CompiledDependencies = compile_dependencies(Vertex, Dependencies, Graph, Options),
+  Contents = string:join(CompiledDependencies, " "),
 
-  ItemFolder = fun(Item, Acc)->
-    {ParentPath, AccumulatedTree, OldTree} = Acc,
-    ItemPath = filename:absname_join(ParentPath, Item),
-    DefaultProps = [{<<"path">>, ItemPath}],
+  %% current_file_contents = compile_without_dependencies(vertex, vertex_data, graph, options)
+  write_file(OutputPath ++ "/" ++ OutputFileName, Contents),
+  compile_assets(OtherVertices, Graph, OutputPath, Options).
 
-    case filelib:is_dir(ItemPath) of
-      true -> % It's a dir. Recurse through it and update tree.
-        NewTree = gb_trees:enter(ItemPath, DefaultProps, AccumulatedTree),
-        UpdatedTree = rebuild(ItemPath, NewTree, OldTree, Options),
-        {ParentPath, UpdatedTree, OldTree};
-      false -> % It's a file. Return updated tree.
-        NewStamp = filelib:last_modified(ItemPath),
-        case NewStamp of
-          0 ->
-            % File deleted. So just return whatever required
-            {ParentPath, AccumulatedTree, OldTree};
-          _ ->
-            % File exists, Add output to tree
-            Output = get_output_for(ItemPath, NewStamp, OldTree, Options),
-            FileProps = [{<<"modified_at">>, NewStamp}, {<<"compiled">>, Output}] ++ DefaultProps,
-            UpdatedTree = gb_trees:enter(ItemPath, FileProps, AccumulatedTree),
-            {ParentPath, UpdatedTree, OldTree}
-        end
+
+compile_dependencies(ParentFile, Dependencies, Graph, Options) ->
+  Mapper = fun(DependencyInfo)->
+    case DependencyInfo of
+      self ->
+        "";
+      {file, Dependency} ->
+        DependencyVertex = guess_vertex(Dependency, "file", ParentFile, Graph),
+        {_, DependencyVertexData} = digraph:vertex(Graph, DependencyVertex),
+        compile_file(Dependency, DependencyVertex_data, Graph, Options);
+      {tree, Dependency} ->
+        dependency_vertex = guess_vertex(Dependency, "dir", ParentFile, Graph),
+        {_, dependency_vertex_data} = digraph:vertex(Graph, DependencyVertex),
+        compile_dir(Dependency, DependencyVertex_data, Graph, Options)
     end
   end,
-
-  % The accumulator is weird, because we want function to be free of parent scope.
-  % Or atleast try to.
-  {_, FinalTree, _} = lists:foldl(ItemFolder, {Path, Tree, OldTree}, Items),
-  FinalTree.
+  lists:map(Mapper, Dependencies).
 
 
-get_output_for(ItemPath, NewStamp, OldTree, Options) ->
-  case gb_trees:lookup(ItemPath, OldTree) of
-    {value, OldProps} ->
-      OldStamp = proplists:get_value(<<"modified_at">>, OldProps),
-      case NewStamp of
-        undefined ->
-          compile_file(ItemPath, Options);
-        OldStamp ->
-          proplists:get_value(<<"compiled">>, OldProps);
-        _ ->
-          compile_file(ItemPath, Options)
-      end;
-    none ->
-      compile_file(ItemPath, Options)
+compile_dir(Vertex, VertexData, Graph, Options)->
+  "definitely".
+
+compile_without_dependencies(Vertex, VertexData, Graph, Options)->
+  "definitely".
+
+compile_file(Vertex, VertexData, Graph, Options)->
+  "definitely".
+
+
+guess_vertex(AssetName, Type, ReferenceVertex, Graph)->
+  Pattern = wilcog_file_utils:possible_path_relative_to_file(ReferenceVertex, AssetName),
+  Vertices = digraph_utils:topsort(Graph),
+  Result = find_matching_vertex(Vertices, Type, Pattern, Graph),
+  if
+    Result == undefined ->
+      erlang:error("No match found for " ++ AssetName ++ ". Referenced in " ++ ReferenceVertex);
+    true -> Result
   end.
 
 
-compile_string(String, FileInfo, Options) ->
-  Compilers = [{<<"scss">>, wilcog_scss_compiler}],
-  File = proplists:get_value(<<"path">>, FileInfo),
-  Extensions = tl(string:tokens(binary_to_list(File), ".")),
+find_matching_vertex([], _LookupVertexType, _Pattern, _Graph)->
+  undefined;
+find_matching_vertex([Vertex | Others], LookupVertexType, Pattern, Graph)->
+  Tokens = re:split(Vertex, Pattern, [{return, list}]),
+  {_, VertexData} = digraph:vertex(Graph, Vertex),
 
-  case length(Extensions) of
-    0 -> "";
-    _ ->
-      RunExtensions = fun(Extension, Acc)->
-        {Source, MetaData, RuntimeOptions, Options} = Acc,
-        ExtensionCompiler = proplists:get_value(list_to_binary(Extension), Compilers, wilcog_default_compiler),
-        {Output, ReturnedOptions} = compile(ExtensionCompiler, Source, MetaData, Options),
-        {Output, MetaData, merge_options(RuntimeOptions, ReturnedOptions), Options}
-      end,
-
-      FileMeta = [{<<"extensions">>, Extensions} | FileInfo],
-      {CompiledOutput, _, ReturnedOptions, _} = lists:foldl(RunExtensions, {String, FileMeta, [], Options}, Extensions),
-      {CompiledOutput, ReturnedOptions}
+  if
+    proplists:get_value(type, VertexData) != LookupVertexType ->
+      find_matching_vertex(Others, Type, Pattern, Graph);
+    hd(Tokens) == [] ->
+      vertex;
+    true ->
+      find_matching_vertex(Others, Type, Pattern, Graph)
   end.
-
-
-compile_file(Path, Options)->
-  case file:read_file(Path) of
-    {ok, FileContents} ->
-      {Output, _ReturnedOptions} = compile_string(FileContents, [{<<"path">>, Path}], Options),
-      Output;
-
-    {error, Reason}->
-      erlang:display("Read failed"),
-      erlang:display(Path),
-      erlang:display(Reason),
-      "" %because the other files can be compiled
-  end.
-
-
-compile(Compiler, Source, MetaData, Options)->
-  case Compiler:compile(Source, MetaData, Options) of
-    {ok, Output, ReturnedOptions} ->
-      {Output, ReturnedOptions};
-    {ok, Output} ->
-      {Output, []}
-  end.
-
-merge_options(OldOptions, NewOptions)->
-  Old = dict:from_list(OldOptions),
-  New = dict:from_list(NewOptions),
-  CleanOptions = dict:merge(fun(_K, OldOption, _NewOption)-> OldOption end, Old, New),
-  dict:to_list(CleanOptions).
-
