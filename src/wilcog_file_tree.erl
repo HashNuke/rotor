@@ -35,9 +35,9 @@ file_properties(Path) ->
 
   case is_js_or_css(OutputFileName) of
     true ->
-      props ++ [{ dependencies, wilcog_directive_parser:parse(Path) }];
+      Props ++ [{ dependencies, wilcog_directive_parser:parse(Path) }];
     false ->
-      props
+      Props
   end.
 
 
