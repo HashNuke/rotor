@@ -12,7 +12,7 @@ build(_Parent, [], Graph) ->
   Graph;
 build(Parent, [Item|Items], Graph) ->
   ItemPath = filename:absname_join(Parent, Item),
-  Graph = case filelib:is_dir(ItemPath) do
+  Graph = case filelib:is_dir(ItemPath) of
     true ->
       {ok, DirList} = file:list_dir(ItemPath),
       Vertex = digraph:add_vertex( Graph, ItemPath, [{type, dir}, {dependencies, []}] ),
