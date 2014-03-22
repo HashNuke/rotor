@@ -3,7 +3,9 @@
 
 
 compile(AssetPath, OutputPath)->
-  compile(AssetPath, OutputPath, []);
+  compile(AssetPath, OutputPath, []).
+
+
 compile(AssetPath, OutputPath, Options)->
   DefaultPrecompileList = ["application.js", "application.css"],
   ExtraPrecompileList = proplists:get_value(precompile, Options, []),
@@ -19,27 +21,18 @@ compile(AssetPath, OutputPath, Options)->
 get_vertices_of_precompile_list(Graph, PrecompileList)->
   Elements = digraph_utils:topsort(Graph),
 
-  FoldFunction = fun(Name, {PrecompileVertices, PrecompileList})->
+  FoldFunction = fun(Name, PrecompileVertices)->
     {Vertex, Data} = digraph:vertex(Graph, Name),
     OutputFileName = proplists:get_value(output, Data),
-    if
-      lists:member(OutputFileName, PrecompileList) ->
-        {PrecompileVertices ++ [Vertex], PrecompileList};
+    case lists:member(OutputFileName, PrecompileList) of
       true ->
+        {PrecompileVertices ++ [Vertex], PrecompileList};
+      false ->
         {PrecompileVertices, PrecompileList}
-    end,
+    end
   end,
-  {PrecompileVertices, _} = lists:foldr(FoldFunction, {[], PrecompileList}, Elements),
-  PrecompileVertices.
 
-
-create_dir_if_not_exists(Path) ->
-  if
-    !filelib:is_dir(Path) ->
-      ok = file:make_dir(Path);
-    true ->
-      ok
-  end.
+  lists:foldr(FoldFunction, [], Elements).
 
 
 write_file(FilePath, Contents) ->
@@ -70,11 +63,11 @@ compile_dependencies(ParentFile, Dependencies, Graph, Options) ->
       {file, Dependency} ->
         DependencyVertex = guess_vertex(Dependency, "file", ParentFile, Graph),
         {_, DependencyVertexData} = digraph:vertex(Graph, DependencyVertex),
-        compile_file(Dependency, DependencyVertex_data, Graph, Options);
+        compile_file(Dependency, DependencyVertexData, Graph, Options);
       {tree, Dependency} ->
-        dependency_vertex = guess_vertex(Dependency, "dir", ParentFile, Graph),
-        {_, dependency_vertex_data} = digraph:vertex(Graph, DependencyVertex),
-        compile_dir(Dependency, DependencyVertex_data, Graph, Options)
+        DependencyVertex = guess_vertex(Dependency, "dir", ParentFile, Graph),
+        {_, DependencyVertexData} = digraph:vertex(Graph, DependencyVertex),
+        compile_dir(Dependency, DependencyVertexData, Graph, Options)
     end
   end,
   lists:map(Mapper, Dependencies).
@@ -104,14 +97,25 @@ guess_vertex(AssetName, Type, ReferenceVertex, Graph)->
 find_matching_vertex([], _LookupVertexType, _Pattern, _Graph)->
   undefined;
 find_matching_vertex([Vertex | Others], LookupVertexType, Pattern, Graph)->
-  Tokens = re:split(Vertex, Pattern, [{return, list}]),
+  {Match, _} = re:split(Vertex, Pattern, [{return, list}]),
   {_, VertexData} = digraph:vertex(Graph, Vertex),
+  VertexType = proplists:get_value(type, VertexData),
 
-  if
-    proplists:get_value(type, VertexData) != LookupVertexType ->
-      find_matching_vertex(Others, Type, Pattern, Graph);
-    hd(Tokens) == [] ->
-      vertex;
-    true ->
-      find_matching_vertex(Others, Type, Pattern, Graph)
+  case does_vertex_match_pattern(Vertex, Pattern) and LookupVertexType == VertexType of
+    true -> vertex;
+    _ ->
+      find_matching_vertex(Others, LookupVertexType, Pattern, Graph)
+  end.
+
+
+does_vertex_match_pattern(Vertex, Pattern) ->
+  { Match, _ } = re:split(Vertex, Pattern, [{return, list}]),
+  Match == [].
+
+
+create_dir_if_not_exists(Path) ->
+  case filelib:is_dir(Path) of
+    false ->
+      ok = file:make_dir(Path);
+    true -> ok
   end.

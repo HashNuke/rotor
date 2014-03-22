@@ -5,3 +5,6 @@ deps
 *.plt
 erl_crash.dump
 ebin
+src/wilcog_directive_block_scanner.erl
+src/wilcog_directive_scanner.erl
+
