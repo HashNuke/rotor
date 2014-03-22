@@ -13,7 +13,7 @@ possible_path_relative_to_file(File, RelativePath) ->
   % while the include path's ".." is popped
 
   FoldFunction = fun(Part, {ParentPathParts, IncludePathParts}) ->
-    case Part do
+    case Part of
       ".." ->
         ReversedParentPathParts = lists:reverse(ParentPathParts),
         NewParentPathParts = lists:reverse( tl(ReversedParentPathParts) ),
@@ -35,18 +35,14 @@ compiler_for(Extension) ->
 
 
 compilers() ->
-  [
-    {"scss", wilcog_scss_compiler},
-    {"js", wilcog_javascript_compiler},
-    {"css", wilcog_css_compiler},
-    {"coffee", wilcog_coffeescript_compiler},
-  ].
+  [{"scss", wilcog_scss_compiler},
+   {"js", wilcog_javascript_compiler},
+   {"css", wilcog_css_compiler},
+   {"coffee", wilcog_coffeescript_compiler}].
 
 
 compiled_name_for(_SourceFilename, Basename, []) ->
-  Basename.
-
-
+  Basename;
 compiled_name_for(SourceFilename, Basename, KnownExtensions) ->
   Parts = [Basename] ++ [compute_extension(SourceFilename, lists:last(KnownExtensions))],
   string:join(Parts, ".").
@@ -59,11 +55,15 @@ compute_basename(Part1, OtherParts) ->
 
 
 compute_extension(SourceFilename, Extension) ->
-  if
-    compiler_for(Extension) && is_extension_defined(compiler_for(Extension)) ->
-      compiler_for(Extension).expected_extension(SourceFilename);
-    true -> Extension
+  case is_valid_extension(Extension) of
+    true ->
+      Compiler = compiler_for(Extension),
+      Compiler:expected_extension(SourceFilename);
+    _ -> Extension
   end.
+
+is_valid_extension(Extension) ->
+  compiler_for(Extension) and is_extension_defined(compiler_for(Extension)).
 
 
 is_extension_defined(Module)->
@@ -78,7 +78,7 @@ extract_info(SourceFilename) ->
   {KnownExtensions, UnknownExtensions} = group_extensions( tl(Parts) ),
 
   ReversedUnknownExtensions = if
-    UnknownExtensions != [] ->
+    UnknownExtensions /= [] ->
       UnknownExtensions = lists:reverse(UnknownExtensions);
     true -> []
   end,
@@ -94,11 +94,10 @@ extract_info(SourceFilename) ->
 
 
 group_extensions([]) ->
-  {[], []}.
-
+  {[], []};
 group_extensions(Extensions) ->
   ReversedExtensions = lists:reverse(Extensions),
   PartitionFunction = fun(Extension)->
-    lists:member(Extension, Dict.keys(Compilers))
+    lists:member(Extension, proplists:get_keys(compilers()) )
   end,
   lists:partition(PartitionFunction, ReversedExtensions).
