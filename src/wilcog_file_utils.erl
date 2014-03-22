@@ -36,10 +36,10 @@ compiler_for(Extension) ->
 
 compilers() ->
   [
-    {"scss", Wilcog.ScssCompiler},
-    {"js", Wilcog.JavascriptCompiler},
-    {"css", Wilcog.CssCompiler},
-    {"coffee", Wilcog.CoffeeScriptCompiler},
+    {"scss", wilcog_scss_compiler},
+    {"js", wilcog_javascript_compiler},
+    {"css", wilcog_css_compiler},
+    {"coffee", wilcog_coffeescript_compiler},
   ].
 
 
