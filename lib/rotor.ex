@@ -31,7 +31,7 @@ defmodule Rotor do
 
   def groups do
     current_state = Rotor.Server.call :current_state
-    current_state.groups
+    Map.keys current_state.groups
   end
 
 
