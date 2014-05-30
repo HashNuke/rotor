@@ -47,7 +47,7 @@ defmodule Rotor do
 
 
   def run(group_name) do
-    Rotor.Server.call [:run, group_name]
+    Rotor.Server.call [:run, group_name, true]
   end
 
 
