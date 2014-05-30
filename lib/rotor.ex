@@ -18,8 +18,37 @@ defmodule Rotor do
   end
 
 
-  def add_group(group_name, paths) do
-    Rotor.Server.call [:add_group, group_name, format_paths(paths)]
+  def add_group(group_name, paths, pipeline) do
+    group_props = %{:paths => format_paths(paths), :pipeline => pipeline}
+    Rotor.Server.call [:add_group, group_name, group_props]
+  end
+
+
+  def remove_group(group_name) do
+    Rotor.Server.call [:remove_group, group_name]
+  end
+
+
+  def groups do
+    current_state = Rotor.Server.call :current_state
+    current_state.groups
+  end
+
+
+  import Rotor.Helpers
+  def test do
+    output_path = "test/samples/outputs/app.js"
+    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
+      read_files(files)
+      |> concat
+      |> output_to(output_path)
+    end
+    Rotor.run :javascripts
+  end
+
+
+  def run(group_name) do
+    Rotor.Server.call [:run, group_name]
   end
 
 
