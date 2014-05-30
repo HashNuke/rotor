@@ -5,23 +5,33 @@ defmodule RotorHelpersTest do
 
   def sample_files do
     [
-      %{:path => "test1.txt", :contents => "john"},
-      %{:path => "test2.txt", :contents => "doe"},
+      %{:path => "test/samples/test1.txt"},
+      %{:path => "test/samples/test2.txt"},
     ]
   end
 
 
   test "should read files" do
-    files = ["test/samples/test1.txt", "test/samples/test2.txt"]
-    files = read_files(files)
+    files = read_files(sample_files)
 
     assert hd(files).contents == "john\n"
     assert List.last(files).contents == "doe\n"
   end
 
 
+  test "should copy files" do
+    file1 = "test/samples/outputs/test1.txt"
+    file2 = "test/samples/outputs/test2.txt"
+    File.rm(file1) && File.rm(file2)
+
+    copy_files sample_files, "test/samples/outputs"
+    assert File.exists?(file1) && File.exists?(file2)
+  end
+
+
   test "should concat files and return a string" do
-    assert concat(sample_files) == "john\ndoe"
+    files = read_files(sample_files)
+    assert concat(files) == "john\n\ndoe\n"
   end
 
 
@@ -31,10 +41,11 @@ defmodule RotorHelpersTest do
       File.rm output_path
     end
 
-    concat(sample_files)
+    read_files(sample_files)
+    |> concat
     |> output_to(output_path)
 
     {:ok, output} = File.read output_path
-    assert output == "john\ndoe"
+    assert output == "john\n\ndoe\n"
   end
 end

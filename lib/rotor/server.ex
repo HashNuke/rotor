@@ -67,7 +67,7 @@ defmodule Rotor.Server do
     [new_index, is_index_changed] = update_file_index(current_index)
 
     if force_trigger_pipeline || is_index_changed do
-      apply pipeline, [HashDict.keys(new_index)]
+      apply pipeline, [HashDict.values(new_index)]
     end
 
     {:ok, new_index}

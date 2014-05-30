@@ -8,15 +8,22 @@ defmodule Rotor.Helpers do
   end
 
 
+  def copy_files(files, destination_dir) do
+    Enum.each files, fn(file)->
+      File.copy(file.path, "#{destination_dir}/#{Path.basename(file.path)}")
+    end
+  end
+
+
   def output_to(contents, output_path) do
     :ok = File.write output_path, contents
   end
 
 
-  def read_files(file_paths) do
-    Enum.map file_paths, fn(file_path)->
-      {:ok, contents} = File.read(file_path)
-      %{:path => file_path, :contents => contents}
+  def read_files(files) do
+    Enum.map files, fn(file)->
+      {:ok, contents} = File.read(file.path)
+      %{:path => file.path, :contents => contents}
     end
   end
 
