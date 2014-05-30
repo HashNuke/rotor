@@ -16,4 +16,11 @@ Rotor.add_group :javascripts, paths, fn(files)->
   |> concat
   |> write_to("app.js")
 end
+
+
+Rotor.add_group :stylesheets, paths, fn(files)->
+  read_files(files)
+  |> concat
+  |> write_to("app.css")
+end
 ```
