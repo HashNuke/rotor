@@ -102,19 +102,4 @@ defmodule Rotor.Server do
     list_files_without_duplicates(paths, updated_file_index)
   end
 
-
-  # defp list_files_without_duplicates(paths) do
-  #   List.foldl paths, HashDict.new(), fn(path, files)->
-  #     Enum.each Path.wildcard(path), fn(file_path)->
-  #       {:ok, file_info} = File.stat(file_path)
-  #       if file_info.type == :directory || HashDict.has_key?(files, file_path) do
-  #         files = files
-  #       else
-  #         file_props = %{:path => file_path, :last_modified_at => file_info.mtime}
-  #         files = HashDict.put_new files, file_path, file_props
-  #       end
-  #     end
-  #   end
-  # end
-
 end
