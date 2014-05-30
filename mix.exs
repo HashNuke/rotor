@@ -1,8 +1,8 @@
-defmodule Wilcog.Mixfile do
+defmodule Rotor.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :wilcog,
+    [app: :rotor,
      version: "0.0.1",
      elixir: "~> 0.13.3",
      deps: deps]
@@ -13,7 +13,7 @@ defmodule Wilcog.Mixfile do
   # Type `mix help compile.app` for more information
   def application do
     [applications: [],
-     mod: {Wilcog, []}]
+     mod: {Rotor, []}]
   end
 
   # Dependencies can be hex.pm packages:

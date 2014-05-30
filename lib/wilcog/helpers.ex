@@ -1,15 +1,18 @@
-defmodule Wilcog.Helpers do
+defmodule Rotor.Helpers do
 
-  def output(files, output_path) do
-    concatenated_output = Enum.reduce files, fn(file, joined_content)->
-      "#{joined_content}\n#{file.contents}"
-    end
-    File.write output_path, concatenated_output
+
+  def concat(files) do
+    Enum.map_join(files, "\n", fn(file)-> file.contents end)
+  end
+
+
+  def write_to(contents, output_path) do
+    File.write output_path, contents
   end
 
 
   def read_files(file_paths) do
-    Enum.map file_path, fn(file_path)->
+    Enum.map file_paths, fn(file_path)->
       %{:path => file_path, :contents => File.read(file_path)}
     end
   end

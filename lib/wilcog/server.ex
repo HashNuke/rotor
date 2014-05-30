@@ -1,9 +1,20 @@
-defmodule Wilcog.Server do
+defmodule Rotor.Server do
   use GenServer
+
+
+  def start_link do
+    GenServer.start(__MODULE__, [], name: Rotor.Server)
+  end
+
 
   def init(_args) do
     state = %{:groups => %{}, :files => HashDict.new()}
     {:ok, state}
+  end
+
+
+  def handle_call(:current_state, _from, state) do
+    {:reply, state, state}
   end
 
 
@@ -23,51 +34,27 @@ defmodule Wilcog.Server do
   end
 
 
-  def handle_call([:refresh, group_name], _from, state) do
-    file_list = list_files_without_duplicates(state.groups[group_name].paths)
-
-    group = state.groups[group_name]
-    updated_group = %{group | :files => file_list}
-
-    new_group_list = Map.update! state.groups, group_name, updated_group, fn(value)->
-      value
+  def handle_call([:remove_group, name], _from, state) do
+    if Map.has_key?(state.groups, name) do
+      new_group_list = Map.delete(state.groups, name)
+      new_state = %{state | :groups => new_group_list}
+      {:reply, :ok, new_state}
+    else
+      {:reply, :no_such_group, state}
     end
-
-    new_state = %{state | :groups => new_group_list}
-    {:reply, :ok, new_state}
   end
 
 
-  defp list_files_without_duplicates(paths)
-    List.foldl paths, [], fn(path, file_paths)->
+
+  defp list_files_without_duplicates(paths) do
+    List.foldl paths, HashDict.new(), fn(path, files)->
       Enum.each Path.wildcard(path), fn(file_path)->
-        if Enum.member?(file_paths, file_path) do
-          file_paths
+        {:ok, file_info} = File.stat(file_path)
+        if file_info.type == :directory || HashDict.has_key?(files, file_path) do
+          files
         else
-          [file_path | file_paths]
-        end
-      end
-    end
-  end
-
-  # def handle_call([:remove_group, name], _from, state) do
-  #   if Map.has_key?(state.groups, name) do
-  #     new_group_list = Map.delete(state.groups, name)
-  #     new_state = %{state | :groups => new_group_list}
-  #     {:reply, :ok, new_state}
-  #   else
-  #     {:reply, :no_such_group, state}
-  #   end
-  # end
-
-
-  defp index_files_for_group(group, paths, current_index) do
-    Enum.foldl Path.wildcard(path), current_index, fn(file_path, index)->
-      HashDict.update index, file_path, %{:groups => [group]}, fn(file_props)->
-        if Enum.member?(file_props.groups, group) do
-          file_props
-        else
-          %{file_props | :groups => [group | file_props.groups]}
+          file_props = %{:path => file_path, :last_modified_at => file_info.mtime}
+          HashDict.put_new files, file_path, file_props
         end
       end
     end

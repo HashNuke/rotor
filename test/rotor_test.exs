@@ -1,4 +1,4 @@
-defmodule WilcogTest do
+defmodule RotorTest do
   use ExUnit.Case
 
   test "the truth" do

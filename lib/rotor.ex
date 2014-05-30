@@ -1,4 +1,4 @@
-defmodule Wilcog do
+defmodule Rotor do
   use Application
 
   # See http://elixir-lang.org/docs/stable/Application.html
@@ -8,18 +8,18 @@ defmodule Wilcog do
 
     children = [
       # Define workers and child supervisors to be supervised
-      worker(Wilcog.Server, [])
+      worker(Rotor.Server, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Wilcog.Supervisor]
+    opts = [strategy: :one_for_one, name: Rotor.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
 
   def add_group(group_name, paths) do
-    Wilcog.Server.call [:add_group, group_name, format_paths(paths)]
+    Rotor.Server.call [:add_group, group_name, format_paths(paths)]
   end
 
 
