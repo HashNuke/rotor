@@ -43,7 +43,6 @@ defmodule Rotor do
       |> concat
       |> output_to(output_path)
     end
-    Rotor.run :javascripts
   end
 
 
