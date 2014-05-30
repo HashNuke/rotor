@@ -35,17 +35,6 @@ defmodule Rotor do
   end
 
 
-  import Rotor.Helpers
-  def test do
-    output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
-      read_files(files)
-      |> concat
-      |> output_to(output_path)
-    end
-  end
-
-
   def run(group_name) do
     Rotor.Server.call [:run, group_name, true]
   end
