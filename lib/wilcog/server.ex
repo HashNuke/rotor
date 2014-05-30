@@ -7,8 +7,8 @@ defmodule Rotor.Server do
   end
 
 
-  def init(_args) do
-    state = %{:groups => %{}, :files => HashDict.new()}
+  def init([]) do
+    state = %{:groups => %{}}
     {:ok, state}
   end
 
@@ -45,6 +45,10 @@ defmodule Rotor.Server do
   end
 
 
+  def call(message) do
+    GenServer.call Rotor.Server, message
+  end
+
 
   defp list_files_without_duplicates(paths) do
     List.foldl paths, HashDict.new(), fn(path, files)->
@@ -60,8 +64,4 @@ defmodule Rotor.Server do
     end
   end
 
-
-  def call(message) do
-
-  end
 end

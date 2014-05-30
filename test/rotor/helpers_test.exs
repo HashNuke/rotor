@@ -35,7 +35,6 @@ defmodule RotorHelpersTest do
     |> output_to(output_path)
 
     {:ok, output} = File.read output_path
-
     assert output == "john\ndoe"
   end
 end
