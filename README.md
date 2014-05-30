@@ -10,7 +10,7 @@
 
 
 ```
-Rotor.add_group :javascripts, fn(files)->
+Rotor.add_group :javascripts, paths, fn(files)->
   read_files(files)
   |> coffee
   |> concat
