@@ -16,4 +16,19 @@ defmodule Wilcog do
     opts = [strategy: :one_for_one, name: Wilcog.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+
+  def add_group(group_name, paths) do
+    Wilcog.Server.call [:add_group, group_name, format_paths(paths)]
+  end
+
+
+  defp format_paths(paths) do
+    cond do
+      :io_lib.char_list(paths) -> ["#{paths}"]
+      is_binary(paths) -> [paths]
+      true -> paths
+    end
+    |> Enum.map(fn(path)-> "#{path}" end)
+  end
 end

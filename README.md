@@ -6,17 +6,16 @@
 
 ### Usage
 
+
 ```
-Wilcog.for :styles, paths do
-  run :coffee do |file|
-    file.extension == ".coffee"
-  end
-  |> run(:concat, "app.js")
+Wilcog.add_group :javascripts, fn(files)->
+  read_files(files)
+  |> coffee
+  |> output("app.js")
 end
 
-
-def for(group_name, paths)
-  Wilcog.call :add_group, group_name, format_paths(paths)
+def add_group(group_name, paths)
+  Wilcog.Server.call [:add_group, group_name, format_paths(paths)]
 end
 
 
@@ -29,3 +28,12 @@ def format_paths(paths) do
   |> Enum.map(fn(path)-> "#{path}" end)
 end
 ```
+
+* add group: dir scan and add files to index
+* refresh: loop thru all files in index and check timestamps, if timestamp changed trigger group
+* add group:
+
+
+
+maintain diff index for each group
+check index for each group
