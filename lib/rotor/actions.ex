@@ -23,7 +23,7 @@ defmodule Rotor.Actions do
   def read_files(files) do
     Enum.map files, fn(file)->
       {:ok, contents} = File.read(file.path)
-      %{:path => file.path, :contents => contents}
+      %{file | :contents => contents}
     end
   end
 

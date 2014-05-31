@@ -5,8 +5,8 @@ defmodule RotorActionsTest do
 
   def sample_files do
     [
-      %{:path => "test/samples/test1.txt"},
-      %{:path => "test/samples/test2.txt"},
+      %{:path => "test/samples/test1.txt", :contents => nil},
+      %{:path => "test/samples/test2.txt", :contents => nil},
     ]
   end
 

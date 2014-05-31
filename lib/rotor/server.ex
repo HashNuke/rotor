@@ -127,7 +127,7 @@ defmodule Rotor.Server do
       if file_info.type == :directory || HashDict.has_key?(index, file_path) do
         index
       else
-        file_props = %{:path => file_path, :last_modified_at => file_info.mtime}
+        file_props = %{:path => file_path, :contents => nil, :last_modified_at => file_info.mtime}
         HashDict.put_new index, file_path, file_props
       end
     end
