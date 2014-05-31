@@ -20,12 +20,12 @@ defmodule Rotor do
 
   def add_group(group_name, paths, rotor) do
     group_props = %{:paths => format_paths(paths), :rotor_function => rotor}
-    Rotor.Server.call [:add_group, group_name, group_props]
+    Rotor.Server.call {:add_group, group_name, group_props}
   end
 
 
   def remove_group(group_name) do
-    Rotor.Server.call [:remove_group, group_name]
+    Rotor.Server.call {:remove_group, group_name}
   end
 
 
@@ -36,7 +36,7 @@ defmodule Rotor do
 
 
   def run(group_name) do
-    Rotor.Server.call [:run, group_name, true]
+    Rotor.Server.call {:run, group_name, true}
   end
 
 

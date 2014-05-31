@@ -18,7 +18,7 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_call([:add_group, group_name, group_config], _from, state) do
+  def handle_call({:add_group, group_name, group_config}, _from, state) do
     # This validates the format and keys
     %{:paths => paths, :rotor_function => rotor} = group_config
     file_index = build_file_index_without_duplicates(paths)
@@ -26,7 +26,7 @@ defmodule Rotor.Server do
     run_rotor_function(group_name, group_config, true)
 
     #TODO centralized config in the Rotor.Server for time period
-    timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
+    timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
     group_config = Map.put_new group_config, :timer_ref, timer_ref
 
     new_group_list = Map.update state.groups, group_name, group_config, fn(value)->
@@ -38,13 +38,13 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_call([:run, group_name, force_run_rotor_function], _from, state) do
+  def handle_call({:run, group_name, force_run_rotor_function}, _from, state) do
     {:ok, new_state} = trigger_group(group_name, state, force_run_rotor_function)
     {:reply, :ok, new_state}
   end
 
 
-  def handle_call([:remove_group, name], _from, state) do
+  def handle_call({:remove_group, name}, _from, state) do
     if Map.has_key?(state.groups, name) do
       :erlang.cancel_timer state.groups[name].timer_ref
       new_group_list = Map.delete(state.groups, name)
@@ -56,7 +56,7 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_info([:trigger, group_name, force_run_rotor_function], state) do
+  def handle_info({:trigger, group_name, force_run_rotor_function}, state) do
     {:ok, new_state} = trigger_group(group_name, state, force_run_rotor_function)
     {:noreply, state}
   end
@@ -74,7 +74,7 @@ defmodule Rotor.Server do
     updated_group = if force_run_rotor_function do
       Map.merge group_config, %{:file_index => new_index}
     else
-      timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
+      timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
       Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
     end
 
