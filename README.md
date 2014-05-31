@@ -1,6 +1,8 @@
 # Rotor
 
-Build system for Elixir projects
+Build system for Elixir projects.
+
+Use it to compile things, run commands or do anything that requires being run when files change.
 
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
 
@@ -8,7 +10,7 @@ Build system for Elixir projects
 
 ### Usage
 
-Each action you want to run over a set of files, is called a watch group. Each watch group has the following
+A set of paths you want to watch is called a *watch group*. Each watch group has the following
 
 * name
 * a list of paths to watch
