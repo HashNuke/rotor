@@ -22,15 +22,15 @@ defmodule Rotor.Server do
     # This validates the format and keys
     %{:paths => paths, :pipeline => pipeline} = group_config
     file_index = build_file_index_without_duplicates(paths)
-
-    run(pipeline, file_index, true)
+    group_config = Map.put_new group_config, :file_index, file_index
+    run_pipeline(group_name, group_config, true)
 
     #TODO centralized config in the Rotor.Server for time period
-    timer_ref = Process.send_after(self, [:run, group_name, false], 2500)
-    group_data = Map.merge group_config, %{:file_index => file_index, :timer_ref => timer_ref}
+    timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
+    group_config = Map.put_new group_config, :timer_ref, timer_ref
 
-    new_group_list = Map.update state.groups, group_name, group_data, fn(value)->
-      group_data
+    new_group_list = Map.update state.groups, group_name, group_config, fn(value)->
+      group_config
     end
 
     new_state = %{state | :groups => new_group_list}
@@ -38,25 +38,15 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_call([:run, group_name, force_trigger_pipeline], _from, state) do
-    IO.inspect "RUNNING: #{group_name}"
-    group = state.groups[group_name]
-    {:ok, new_index} = run(group.pipeline, group.file_index, force_trigger_pipeline)
-
-    timer_ref = Process.send_after(self, [:run, group_name, false], 2500)
-    updated_group = Map.merge group, %{:file_index => new_index, :timer_ref => timer_ref}
-
-    new_state = Map.update state, group_name, updated_group, fn(_val)->
-      updated_group
-    end
-
+  def handle_call([:run, group_name, force_run_pipeline], _from, state) do
+    {:ok, new_state} = trigger_group(group_name, state, force_run_pipeline)
     {:reply, :ok, new_state}
   end
 
 
   def handle_call([:remove_group, name], _from, state) do
     if Map.has_key?(state.groups, name) do
-      :erlang.cancel_timer state.groups[:name].timer_ref
+      :erlang.cancel_timer state.groups[name].timer_ref
       new_group_list = Map.delete(state.groups, name)
       new_state = %{state | :groups => new_group_list}
       {:reply, :ok, new_state}
@@ -66,16 +56,42 @@ defmodule Rotor.Server do
   end
 
 
+  def handle_info([:trigger, group_name, force_run_pipeline], state) do
+    {:ok, new_state} = trigger_group(group_name, state, force_run_pipeline)
+    {:noreply, state}
+  end
+
+
   def call(message) do
     GenServer.call Rotor.Server, message
   end
 
 
-  defp run(pipeline, current_index, force_trigger_pipeline) do
-    [new_index, is_index_changed] = update_file_index(current_index)
+  defp trigger_group(group_name, current_state, force_run_pipeline \\ false) do
+    group_config = current_state.groups[group_name]
+    {:ok, new_index} = run_pipeline(group_name, group_config, force_run_pipeline)
+
+    updated_group = if force_run_pipeline do
+      Map.merge group_config, %{:file_index => new_index}
+    else
+      timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
+      Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
+    end
+
+    new_state = Map.update current_state, group_name, updated_group, fn(_val)->
+      updated_group
+    end
+    {:ok, new_state}
+  end
+
+
+  defp run_pipeline(group_name, group_config, force_trigger_pipeline) do
+    [new_index, is_index_changed] = update_file_index(group_config.file_index)
 
     if force_trigger_pipeline || is_index_changed do
-      apply pipeline, [HashDict.values(new_index)]
+      IO.inspect "RUNNING: #{group_name}"
+      apply group_config.pipeline, [HashDict.values(new_index)]
+      IO.inspect "COMPLETED: #{group_name}"
     end
 
     {:ok, new_index}

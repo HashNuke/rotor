@@ -34,6 +34,8 @@ defmodule RotorTest do
       |> output_to(output_path)
     end
 
+    :ok = :timer.sleep(3000)
+
     {:ok, contents} = File.read output_path
     assert Regex.match?(~r/x=1/, contents) && Regex.match?(~r/y=2/, contents)
 
