@@ -1,6 +1,8 @@
 # Rotor
 
-Robot is a build system for Elixir projects. Use it to compile things, run commands or do anything that requires being run when files change.
+Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that needs to be run when files change.
+
+**NOTE:** Rotor is *not* a replacement for mix. Rotor is inspired by [gulp](https://github.com/gulpjs/gulp) and is intended to be used as your sidekick during development.
 
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
 
