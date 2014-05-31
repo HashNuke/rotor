@@ -2,11 +2,27 @@
 
 Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that needs to be run when files change.
 
-**NOTE:** Rotor is *not* a replacement for mix. Rotor is inspired by [gulp](https://github.com/gulpjs/gulp) and is intended to be used as your sidekick during development.
-
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
 
 [1]: http://en.wikipedia.org/wiki/Wreckers_(Transformers)
+
+
+### Example: Compile CoffeeScript files whenever they change
+
+```elixir
+paths = ["assets/libs/*.coffee", "assets/*.coffee"]
+Rotor.add_group :coffee_assets, paths, fn(files)->
+  read_files(files)
+  |> coffee
+  |> concat
+  |> write_to("priv/static/assets/app.js")
+end
+```
+
+*The above example uses the [coffee_rotor](https://github.com/HashNuke/coffee_rotor).*
+
+
+> **NOTE:** Rotor is *not* a replacement for mix. It is intended to be used as your sidekick during development.
 
 ### Usage
 
@@ -27,7 +43,7 @@ The rotor function is passed info about the list of files that match the paths s
 
 
 ```elixir
-paths = ["assets/javascripts/libs/*.js"", "assets/javascripts/*.js"]
+paths = ["assets/javascripts/libs/*.js", "assets/javascripts/*.js"]
 Rotor.add_group :javascripts, paths, fn(files)->
   read_files(files)
   |> concat
