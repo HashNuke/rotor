@@ -42,7 +42,7 @@ Rotor ships with a few simple rotors in the `Rotor.Basic` module.
 * `concat(files)` - concats contents of files and returns a string
 * `write_to(contents, output_path)` - writes the contents to the file path specified in output path
 
-You can also write your own. Check the *"Writing custom actions"* section below.
+You can also write your own. Check the *"Writing custom rotors"* section below.
 
 
 ### Other stuff
