@@ -29,9 +29,7 @@ defmodule Rotor.Server do
     timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
     group_config = Map.put_new group_config, :timer_ref, timer_ref
 
-    new_group_list = Map.update state.groups, group_name, group_config, fn(value)->
-      group_config
-    end
+    new_group_list = Map.put state.groups, group_name, group_config
 
     new_state = %{state | :groups => new_group_list}
     {:reply, :ok, new_state}
@@ -78,9 +76,7 @@ defmodule Rotor.Server do
       Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
     end
 
-    new_state = Map.update current_state, group_name, updated_group, fn(_val)->
-      updated_group
-    end
+    new_state = Map.put current_state, group_name, updated_group
     {:ok, new_state}
   end
 
