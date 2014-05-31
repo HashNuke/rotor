@@ -19,14 +19,14 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 
 #### Adding watch groups
 
-```
+```elixir
 Rotor.add_group(name, files, rotor_function)
 ```
 
 The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other little functions called `rotors`, that run certain tasks.
 
 
-```
+```elixir
 paths = ["assets/javascripts/libs/*.js"", "assets/javascripts/*.js"]
 Rotor.add_group :javascripts, paths, fn(files)->
   read_files(files)
@@ -49,27 +49,27 @@ You can also write your own. Check the *"Writing custom rotors"* section below.
 
 ### Other stuff
 
-To remove a watch group
+* To remove a watch group
 
-```
-Rotor.remove_group(group_name)
-```
+    ```elixir
+    Rotor.remove_group(group_name)
+    ```
 
-To list groups
+* To list groups
 
-```
-Rotor.groups
-```
+    ```elixir
+    Rotor.groups
+    ```
 
-To run a watch group's rotor forcefully
+* To run a watch group's rotor functions forcefully
 
-```
-Rotor.run(group_name)
-```
+    ```elixir
+    Rotor.run(group_name)
+    ```
 
 ### Examples
 
-```
+```elixir
 paths = ["assets/stylesheets/libs/*.css", "assets/stylesheets/*.css"]
 Rotor.add_group :stylesheets, paths, fn(files)->
   read_files(files)
