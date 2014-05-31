@@ -14,16 +14,16 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 
 * name
 * a list of paths to watch
-* a function, which we'll call the *pipeline*, that is run everytime any of the files in the paths changes. It should accept one argument (a list of maps, each having info about a file).
+* a function, which we'll call the *rotor*, that is run everytime any of the files in the paths changes. It should accept one argument (a list of maps, each having info about a file).
 
 
 #### Adding watch groups
 
 ```
-Rotor.add_group(name, files, pipeline_function)
+Rotor.add_group(name, files, rotor_function)
 ```
 
-The pipeline function is passed info about the list of files that match the paths specified. The pipeline function calls other functions `actions`, that run certain tasks.
+The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other functions `actions`, that run certain tasks.
 
 
 ```
@@ -61,7 +61,7 @@ To list groups
 Rotor.groups
 ```
 
-To run a watch group's pipeline forcefully
+To run a watch group's rotor forcefully
 
 ```
 Rotor.run(group_name)

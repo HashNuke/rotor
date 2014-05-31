@@ -18,8 +18,8 @@ defmodule Rotor do
   end
 
 
-  def add_group(group_name, paths, pipeline) do
-    group_props = %{:paths => format_paths(paths), :pipeline => pipeline}
+  def add_group(group_name, paths, rotor) do
+    group_props = %{:paths => format_paths(paths), :rotor => rotor}
     Rotor.Server.call [:add_group, group_name, group_props]
   end
 
