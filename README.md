@@ -6,14 +6,6 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 
 [1]: http://en.wikipedia.org/wiki/Wreckers_(Transformers)
 
-### Features
-
-* Works with any web framework or even plain mix projects
-* Easy to use
-* Extendable with simple functions
-* Can be configured to run commands or code or go to the mooon.
-* Inspired by [gulp](https://github.com/gulpjs/gulp)
-
 
 ### Example: Compile CoffeeScript files whenever they change
 
@@ -31,6 +23,16 @@ end
 
 
 > **NOTE:** Rotor is *not* a replacement for mix. It is intended to be used as your sidekick during development.
+
+
+### Features
+
+* Works with any web framework or even plain mix projects
+* Easy to use
+* Extendable with simple functions
+* Can be configured to run commands or code or go to the moon.
+* Inspired by [gulp](https://github.com/gulpjs/gulp)
+
 
 ### Usage
 
