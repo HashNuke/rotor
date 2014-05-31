@@ -48,4 +48,15 @@ defmodule Rotor do
     end
     |> Enum.map(fn(path)-> "#{path}" end)
   end
+
+
+  import Rotor.Helpers
+  def test do
+    output_path = "test/samples/outputs/app.js"
+    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
+      read_files(files)
+      |> concat
+      |> output_to(output_path)
+    end
+  end
 end

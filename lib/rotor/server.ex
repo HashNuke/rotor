@@ -22,22 +22,29 @@ defmodule Rotor.Server do
     # This validates the format and keys
     %{:paths => paths, :pipeline => pipeline} = group_config
     file_index = build_file_index_without_duplicates(paths)
-    group_data = Map.put_new group_config, :file_index, file_index
+
+    run(pipeline, file_index, true)
+
+    #TODO centralized config in the Rotor.Server for time period
+    timer_ref = Process.send_after(self, [:run, group_name, false], 2500)
+    group_data = Map.merge group_config, %{:file_index => file_index, :timer_ref => timer_ref}
 
     new_group_list = Map.update state.groups, group_name, group_data, fn(value)->
       group_data
     end
 
-    run(pipeline, file_index, true)
     new_state = %{state | :groups => new_group_list}
     {:reply, :ok, new_state}
   end
 
 
   def handle_call([:run, group_name, force_trigger_pipeline], _from, state) do
+    IO.inspect "RUNNING: #{group_name}"
     group = state.groups[group_name]
     {:ok, new_index} = run(group.pipeline, group.file_index, force_trigger_pipeline)
-    updated_group = %{group | :file_index => new_index}
+
+    timer_ref = Process.send_after(self, [:run, group_name, false], 2500)
+    updated_group = Map.merge group, %{:file_index => new_index, :timer_ref => timer_ref}
 
     new_state = Map.update state, group_name, updated_group, fn(_val)->
       updated_group
@@ -49,6 +56,7 @@ defmodule Rotor.Server do
 
   def handle_call([:remove_group, name], _from, state) do
     if Map.has_key?(state.groups, name) do
+      :erlang.cancel_timer state.groups[:name].timer_ref
       new_group_list = Map.delete(state.groups, name)
       new_state = %{state | :groups => new_group_list}
       {:reply, :ok, new_state}
