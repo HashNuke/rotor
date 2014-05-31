@@ -86,4 +86,4 @@ end
 
 Rotors are just functions that accept data and do something.
 
-Checkout [coffee-rotor](https://github.com/HashNuke/coffee-rotor), which provides a rotor to compile CoffeeScript files.
+Checkout [coffee_rotor](https://github.com/HashNuke/coffee_rotor), which provides a rotor to compile CoffeeScript files.
