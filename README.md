@@ -11,6 +11,7 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 * Works with any web framework or even plain mix projects
 * Easy to use
 * Extendable with simple functions
+* Can be configured to run commands or code or go to the mooon.
 * Inspired by [gulp](https://github.com/gulpjs/gulp)
 
 
