@@ -42,11 +42,9 @@ defmodule Rotor do
 
   defp format_paths(paths) do
     cond do
-      :io_lib.char_list(paths) -> ["#{paths}"]
-      is_binary(paths) -> [paths]
+      String.valid?(paths) || :io_lib.char_list(paths) -> [paths]
       true -> paths
     end
-    |> Enum.map(fn(path)-> "#{path}" end)
   end
 
 end
