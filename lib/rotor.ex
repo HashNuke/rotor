@@ -19,7 +19,7 @@ defmodule Rotor do
 
 
   def add_group(group_name, paths, rotor) do
-    group_props = %{:paths => format_paths(paths), :rotor => rotor}
+    group_props = %{:paths => format_paths(paths), :rotor_function => rotor}
     Rotor.Server.call [:add_group, group_name, group_props]
   end
 
@@ -49,14 +49,4 @@ defmodule Rotor do
     |> Enum.map(fn(path)-> "#{path}" end)
   end
 
-
-  import Rotor.Actions
-  def test do
-    output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
-      read_files(files)
-      |> concat
-      |> output_to(output_path)
-    end
-  end
 end

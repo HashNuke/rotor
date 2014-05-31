@@ -20,10 +20,10 @@ defmodule Rotor.Server do
 
   def handle_call([:add_group, group_name, group_config], _from, state) do
     # This validates the format and keys
-    %{:paths => paths, :rotor => rotor} = group_config
+    %{:paths => paths, :rotor_function => rotor} = group_config
     file_index = build_file_index_without_duplicates(paths)
     group_config = Map.put_new group_config, :file_index, file_index
-    run_rotor(group_name, group_config, true)
+    run_rotor_function(group_name, group_config, true)
 
     #TODO centralized config in the Rotor.Server for time period
     timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
@@ -38,8 +38,8 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_call([:run, group_name, force_run_rotor], _from, state) do
-    {:ok, new_state} = trigger_group(group_name, state, force_run_rotor)
+  def handle_call([:run, group_name, force_run_rotor_function], _from, state) do
+    {:ok, new_state} = trigger_group(group_name, state, force_run_rotor_function)
     {:reply, :ok, new_state}
   end
 
@@ -56,8 +56,8 @@ defmodule Rotor.Server do
   end
 
 
-  def handle_info([:trigger, group_name, force_run_rotor], state) do
-    {:ok, new_state} = trigger_group(group_name, state, force_run_rotor)
+  def handle_info([:trigger, group_name, force_run_rotor_function], state) do
+    {:ok, new_state} = trigger_group(group_name, state, force_run_rotor_function)
     {:noreply, state}
   end
 
@@ -67,11 +67,11 @@ defmodule Rotor.Server do
   end
 
 
-  defp trigger_group(group_name, current_state, force_run_rotor \\ false) do
+  defp trigger_group(group_name, current_state, force_run_rotor_function \\ false) do
     group_config = current_state.groups[group_name]
-    {:ok, new_index} = run_rotor(group_name, group_config, force_run_rotor)
+    {:ok, new_index} = run_rotor_function(group_name, group_config, force_run_rotor_function)
 
-    updated_group = if force_run_rotor do
+    updated_group = if force_run_rotor_function do
       Map.merge group_config, %{:file_index => new_index}
     else
       timer_ref = Process.send_after(Rotor.Server, [:trigger, group_name, false], 2500)
@@ -85,12 +85,12 @@ defmodule Rotor.Server do
   end
 
 
-  defp run_rotor(group_name, group_config, force_trigger_rotor) do
+  defp run_rotor_function(group_name, group_config, force_run_rotor_function) do
     [new_index, is_index_changed] = update_file_index(group_config.file_index)
 
-    if force_trigger_rotor || is_index_changed do
+    if force_run_rotor_function || is_index_changed do
       IO.inspect "RUNNING: #{group_name}"
-      apply group_config.rotor, [HashDict.values(new_index)]
+      apply group_config.rotor_function, [HashDict.values(new_index)]
       IO.inspect "COMPLETED: #{group_name}"
     end
 

@@ -1,4 +1,4 @@
-defmodule Rotor.Actions do
+defmodule Rotor.BasicRotors do
 
 
   def concat(files) do

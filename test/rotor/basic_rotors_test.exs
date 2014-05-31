@@ -1,6 +1,6 @@
-defmodule RotorActionsTest do
+defmodule BasicRotorsTest do
   use ExUnit.Case
-  import Rotor.Actions
+  import Rotor.BasicRotors
 
 
   def sample_files do

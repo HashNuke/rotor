@@ -12,7 +12,7 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 
 * name
 * a list of paths to watch
-* a function, which we'll call the *rotor*, that is run everytime any of the files in the paths changes. It should accept one argument (a list of maps, each having info about a file).
+* a function, which we'll call the *rotor function*, that is run everytime any of the files in the paths changes. It should accept one argument (a list of maps, each having info about a file).
 
 
 #### Adding watch groups
@@ -21,7 +21,7 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 Rotor.add_group(name, files, rotor_function)
 ```
 
-The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other functions `actions`, that run certain tasks.
+The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other little functions called `rotors`, that run certain tasks.
 
 
 ```
@@ -33,9 +33,9 @@ Rotor.add_group :javascripts, paths, fn(files)->
 end
 ```
 
-#### Actions
+#### Rotors
 
-Rotor ships with a few simple actions in the `Rotor.Actions` module.
+Rotor ships with a few simple rotors in the `Rotor.Basic` module.
 
 * `read_files(files)` - reads contents of files, and returns files with a property called `contents`
 * `copy_files(files, destination_dir)` - copies files to destination_dir
@@ -82,8 +82,8 @@ Rotor.add_group :images_and_fonts, paths, fn(files)->
 end
 ```
 
-### Writing custom actions
+### Writing custom rotors
 
-Actions are just functions that accept data and do something.
+Rotors are just functions that accept data and do something.
 
-Checkout [coffee-rotor](https://github.com/HashNuke/coffee-rotor), which provides an action to compile CoffeeScript files.
+Checkout [coffee-rotor](https://github.com/HashNuke/coffee-rotor), which provides a rotor to compile CoffeeScript files.

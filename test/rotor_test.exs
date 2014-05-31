@@ -1,7 +1,7 @@
 defmodule RotorTest do
   use ExUnit.Case
 
-  import Rotor.Actions
+  import Rotor.BasicRotors
 
   test "state should be initialized on server start" do
     current_state = Rotor.Server.call(:current_state)
