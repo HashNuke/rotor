@@ -1,8 +1,6 @@
 # Rotor
 
-Build system for Elixir projects.
-
-Use it to compile things, run commands or do anything that requires being run when files change.
+Robot is a build system for Elixir projects. Use it to compile things, run commands or do anything that requires being run when files change.
 
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
 

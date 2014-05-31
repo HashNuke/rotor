@@ -3,8 +3,10 @@ defmodule Rotor.Mixfile do
 
   def project do
     [app: :rotor,
-     version: "0.1",
+     version: "0.1.0",
      elixir: "~> 0.13.3",
+     description: description,
+     package: package,
      deps: deps]
   end
 
@@ -15,6 +17,22 @@ defmodule Rotor.Mixfile do
     [applications: [],
      mod: {Rotor, []}]
   end
+
+
+  defp description do
+    """
+    Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that requires being run when files change.
+    """
+  end
+
+
+  defp package do
+    [
+      contributors: ["Akash Manohar J"],
+      links: %{ "GitHub" => "https://github.com/HashNuke/rotor" }
+    ]
+  end
+
 
   # Dependencies can be hex.pm packages:
   #
