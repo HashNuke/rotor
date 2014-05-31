@@ -50,7 +50,7 @@ defmodule Rotor do
   end
 
 
-  import Rotor.Helpers
+  import Rotor.Actions
   def test do
     output_path = "test/samples/outputs/app.js"
     Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
