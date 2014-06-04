@@ -11,8 +11,8 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 
 ```elixir
 paths = ["assets/libs/*.coffee", "assets/*.coffee"]
-Rotor.add_group :coffee_assets, paths, fn(files)->
-  read_files(files)
+Rotor.add_group :coffee_assets, paths, fn(changed_files, all_files)->
+  read_files(all_files)
   |> coffee
   |> concat
   |> write_to("priv/static/assets/app.js")
@@ -54,8 +54,8 @@ The rotor function is passed info about the list of files that match the paths s
 
 ```elixir
 paths = ["assets/javascripts/libs/*.js", "assets/javascripts/*.js"]
-Rotor.add_group :javascripts, paths, fn(files)->
-  read_files(files)
+Rotor.add_group :javascripts, paths, fn(changed_files, all_files)->
+  read_files(all_files)
   |> concat
   |> write_to("priv/static/assets/app.js")
 end
@@ -97,15 +97,15 @@ You can also write your own. Check the *"Writing custom rotors"* section below.
 
 ```elixir
 paths = ["assets/stylesheets/libs/*.css", "assets/stylesheets/*.css"]
-Rotor.add_group :stylesheets, paths, fn(files)->
-  read_files(files)
+Rotor.add_group :stylesheets, paths, fn(changed_files, all_files)->
+  read_files(all_files)
   |> concat
   |> write_to("app.css")
 end
 
 
 paths = ["assets/images/*", "assets/fonts/*"]
-Rotor.add_group :images_and_fonts, paths, fn(files)->
+Rotor.add_group :images_and_fonts, paths, fn(changed_files, all_files)->
   copy_files(files, "priv/static/assets")
 end
 ```

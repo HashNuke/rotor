@@ -11,8 +11,8 @@ defmodule RotorTest do
 
   test "should be able to add and remove groups" do
     output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
-      read_files(files)
+    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(changed_files, all_files)->
+      read_files(all_files)
       |> concat
       |> output_to(output_path)
     end
@@ -28,8 +28,8 @@ defmodule RotorTest do
 
   test "should watch for changes and run pipeline functions" do
     output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(files)->
-      read_files(files)
+    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(changed_files, all_files)->
+      read_files(all_files)
       |> concat
       |> output_to(output_path)
     end

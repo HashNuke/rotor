@@ -82,11 +82,11 @@ defmodule Rotor.Server do
 
 
   defp run_rotor_function(group_name, group_config, force_run_rotor_function) do
-    [new_index, is_index_changed] = update_file_index(group_config.file_index)
+    [changed_files, new_index, is_index_changed] = update_file_index(group_config.file_index)
 
     if force_run_rotor_function || is_index_changed do
       IO.inspect "RUNNING: #{group_name}"
-      apply group_config.rotor_function, [HashDict.values(new_index)]
+      apply group_config.rotor_function, [changed_files, HashDict.values(new_index)]
       IO.inspect "COMPLETED: #{group_name}"
     end
 
@@ -95,20 +95,20 @@ defmodule Rotor.Server do
 
 
   defp update_file_index(current_index) do
-    reducer = fn({path, file}, [index, is_changed])->
+    reducer = fn({path, file}, [changed_files, index, is_changed])->
       {:ok, stat} = File.stat(path)
 
       if file.last_modified_at != stat.mtime do
-        new_index = HashDict.update! index, path, fn(_value)->
-          %{file | :last_modified_at => stat.mtime}
-        end
-        [new_index, true]
+        file = %{file | :last_modified_at => stat.mtime}
+        new_index = HashDict.put_new(index, path, file)
+        changed_files = HashDict.put_new(changed_files, path, file)
+        [changed_files, new_index, true]
       else
-        [index, is_changed]
+        [changed_files, index, is_changed]
       end
     end
 
-    Enum.reduce(current_index, [current_index, false], reducer)
+    Enum.reduce(current_index, [HashDict.new(), current_index, false], reducer)
   end
 
 
