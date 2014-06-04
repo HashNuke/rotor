@@ -2,25 +2,8 @@ defmodule Rotor.Server do
   use GenServer
 
 
-  def start_link do
-    GenServer.start(__MODULE__, [], name: Rotor.Server)
-  end
-
-
-  def init([]) do
-    state = %{:groups => %{}}
-    {:ok, state}
-  end
-
-
-  def handle_call(:current_state, _from, state) do
-    {:reply, state, state}
-  end
-
-
   def handle_call({:add_group, group_name, group_config}, _from, state) do
     # This validates the format and keys
-    %{:paths => paths, :rotor_function => rotor} = group_config
     file_index = build_file_index_without_duplicates(paths)
     group_config = Map.put_new group_config, :file_index, file_index
     run_rotor_function(group_name, group_config, true)
@@ -56,7 +39,7 @@ defmodule Rotor.Server do
 
   def handle_info({:trigger, group_name, force_run_rotor_function}, state) do
     {:ok, new_state} = trigger_group(group_name, state, force_run_rotor_function)
-    {:noreply, state}
+    {:noreply, new_state}
   end
 
 
@@ -72,8 +55,8 @@ defmodule Rotor.Server do
     updated_group = if force_run_rotor_function do
       Map.merge group_config, %{:file_index => new_index}
     else
-      # # timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
-      # Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
+      timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
+      Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
     end
 
     updated_groups = Map.put current_state.groups, group_name, updated_group
@@ -105,34 +88,18 @@ defmodule Rotor.Server do
       if file.last_modified_at != stat.mtime do
         file = %{file | :last_modified_at => stat.mtime}
         new_index = HashDict.put_new(index, path, file)
-        changed_files = HashDict.put_new(changed_files, path, file)
-        [changed_files, new_index, true]
+        [
+          changed_files ++ [file],
+          new_index,
+          true
+        ]
       else
         [changed_files, index, is_changed]
       end
     end
 
-    Enum.reduce(current_index, [HashDict.new(), current_index, false], reducer)
+    Enum.reduce(current_index, [[], current_index, false], reducer)
   end
 
-
-  defp build_file_index_without_duplicates([], file_index) do
-    file_index
-  end
-
-
-  defp build_file_index_without_duplicates([path | paths], file_index \\ HashDict.new()) do
-    updated_file_index = Enum.reduce Path.wildcard(path), file_index, fn(file_path, index)->
-      {:ok, file_info} = File.stat(file_path)
-      if file_info.type == :directory || HashDict.has_key?(index, file_path) do
-        index
-      else
-        file_props = %{:path => file_path, :contents => nil, :last_modified_at => file_info.mtime}
-        HashDict.put_new index, file_path, file_props
-      end
-    end
-
-    build_file_index_without_duplicates(paths, updated_file_index)
-  end
 
 end

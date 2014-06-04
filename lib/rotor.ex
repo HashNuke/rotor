@@ -1,6 +1,8 @@
 defmodule Rotor do
   use Application
 
+  import Rotor.Utils
+
   # See http://elixir-lang.org/docs/stable/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -8,6 +10,8 @@ defmodule Rotor do
 
     children = [
       # Define workers and child supervisors to be supervised
+      worker(Rotor.ConfigServer, []),
+      worker(Rotor.WatchGroupServer, []),
       worker(Rotor.Server, [])
     ]
 
@@ -18,25 +22,27 @@ defmodule Rotor do
   end
 
 
-  def add_group(group_name, paths, rotor) do
-    group_props = %{:paths => format_paths(paths), :rotor_function => rotor}
-    Rotor.Server.call {:add_group, group_name, group_props}
+  def watch(name, paths, rotor_function) do
+    file_index = format_paths(paths)
+    |> build_file_index
+    :ok = Rotor.WatchGroupServer.add_group(name, paths, file_index, rotor_function)
   end
 
 
-  def remove_group(group_name) do
-    Rotor.Server.call {:remove_group, group_name}
+  def stop_watching(name) do
+    #TODO remove timers
+    Rotor.WatchGroupServer.remove_group name
   end
 
 
-  def groups do
-    current_state = Rotor.Server.call :current_state
-    Map.keys current_state.groups
-  end
+  # def groups do
+  #   current_state = Rotor.Server.call :current_state
+  #   Map.keys current_state.groups
+  # end
 
 
   def run(group_name) do
-    Rotor.Server.call {:run, group_name, true}
+    Rotor.EventServer.trigger group_name
   end
 
 
