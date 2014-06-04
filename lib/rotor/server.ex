@@ -72,17 +72,21 @@ defmodule Rotor.Server do
     updated_group = if force_run_rotor_function do
       Map.merge group_config, %{:file_index => new_index}
     else
-      timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
-      Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
+      # # timer_ref = Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
+      # Map.merge group_config, %{:file_index => new_index, :timer_ref => timer_ref}
     end
 
-    new_state = Map.put current_state, group_name, updated_group
+    updated_groups = Map.put current_state.groups, group_name, updated_group
+    new_state = Map.put current_state, :groups, updated_groups
     {:ok, new_state}
   end
 
 
   defp run_rotor_function(group_name, group_config, force_run_rotor_function) do
     [changed_files, new_index, is_index_changed] = update_file_index(group_config.file_index)
+    IO.inspect "Listing changes..."
+    IO.inspect changed_files
+    IO.inspect "end of changes"
 
     if force_run_rotor_function || is_index_changed do
       IO.inspect "RUNNING: #{group_name}"
