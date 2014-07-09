@@ -25,7 +25,7 @@ defmodule Rotor.FileWatcher do
         update_file_index_timestamps(index)
     end
 
-    if changed_files != [] do
+    if length(changed_files) != 0 do
       state = put_in state[:file_index], file_index
       Rotor.WatchGroupServer.trigger(state.name, changed_files, HashDict.values(file_index))
     end
