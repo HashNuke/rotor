@@ -23,9 +23,8 @@ defmodule Rotor do
 
 
   def watch(name, paths, rotor_function) do
-    file_index = format_paths(paths)
-    |> build_file_index
-    :ok = Rotor.WatchGroupServer.add_group(name, paths, file_index, rotor_function)
+    paths = format_paths(paths)
+    :ok = Rotor.WatchGroupServer.add_group(name, paths, rotor_function)
   end
 
 
