@@ -17,7 +17,7 @@ defmodule Rotor.FileWatcher do
   def handle_call(:poll, _from, state) do
     {changed_files, file_index} = case get_in(state, [:file_index]) do
       nil ->
-        {:ok, group_info} = Rotor.WatchGroupServer.get_group(state.name)
+        {:ok, group_info} = Rotor.WatchGroupServer.group(state.name)
         file_index = build_file_index(group_info.paths)
         state = put_in state[:file_index], file_index
         {[], file_index}
