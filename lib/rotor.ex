@@ -21,15 +21,14 @@ defmodule Rotor do
   end
 
 
-  def watch(name, paths, rotor_function) do
+  def watch(name, paths, rotor_function, options \\ %{}) do
     paths = format_paths(paths)
-    :ok = Rotor.WatchGroupServer.add_group(name, paths, rotor_function)
+    :ok = Rotor.WatchGroupServer.add(name, paths, rotor_function, options)
   end
 
 
   def stop_watching(name) do
-    #TODO remove timers
-    Rotor.WatchGroupServer.remove_group name
+    Rotor.WatchGroupServer.remove(name)
   end
 
 
