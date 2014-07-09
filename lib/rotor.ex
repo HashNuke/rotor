@@ -1,8 +1,6 @@
 defmodule Rotor do
   use Application
 
-  import Rotor.Utils
-
   # See http://elixir-lang.org/docs/stable/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -21,19 +19,32 @@ defmodule Rotor do
   end
 
 
+  def group(name) do
+    GenServer.call Rotor.WatchGroupServer, {:group, name}
+  end
+
+
   def watch(name, paths, rotor_function, options \\ %{}) do
     paths = format_paths(paths)
-    :ok = Rotor.WatchGroupServer.add(name, paths, rotor_function, options)
+    GenServer.call Rotor.WatchGroupServer, {:add, name, paths, rotor_function, options}
   end
 
 
   def stop_watching(name) do
-    Rotor.WatchGroupServer.remove(name)
+    GenServer.call Rotor.WatchGroupServer, {:remove, name}
   end
 
 
   def groups do
-    Rotor.WatchGroupServer.groups
+    GenServer.call Rotor.WatchGroupServer, :groups
+  end
+
+
+  def run(name) do
+    group_info = Rotor.group(name)
+    all_files = Rotor.Utils.build_file_index(group_info.paths)
+                |> HashDict.values
+    Rotor.WatchGroupServer.trigger(name, all_files, all_files)
   end
 
 

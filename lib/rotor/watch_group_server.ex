@@ -61,26 +61,6 @@ defmodule Rotor.WatchGroupServer do
   end
 
 
-  def groups do
-    GenServer.call __MODULE__, :groups
-  end
-
-
-  def group(name) do
-    GenServer.call __MODULE__, {:group, name}
-  end
-
-
-  def add(name, paths, rotor_function, options \\ %{}) do
-    GenServer.call __MODULE__, {:add, name, paths, rotor_function, options}
-  end
-
-
-  def remove(name) do
-    GenServer.call __MODULE__, {:remove, name}
-  end
-
-
   def trigger(name, changed_files, all_files) do
     GenServer.call __MODULE__, {:trigger, name, changed_files, all_files}
   end

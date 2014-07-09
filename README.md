@@ -1,17 +1,5 @@
 # Rotor
 
-
-WatchGroupServer
-  * stores data about watch groups
-
-FileWatcher
-  * watches for changes and triggers rotor functions when required
-
-EventServer
-  * runs events upto the possible limit
-  * if the parallel event limit is triggered, then the event is ignored
-
-
 Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that needs to be run when files change.
 
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
@@ -30,6 +18,7 @@ Rotor.watch :coffee_assets, paths, fn(changed_files, all_files)->
   |> write_to("priv/static/assets/app.js")
 end
 
+# Either touch a file that's in the path provided or forcefully run the task like below
 Rotor.run :coffee_assets
 ```
 
@@ -54,13 +43,15 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 
 * name
 * a list of paths to watch
-* a function, which we'll call the *rotor function*, that is run everytime any of the files in the paths changes. It should accept one argument (a list of maps, each having info about a file).
+* a function, which we'll call the *rotor function*, that is run everytime any of the files in the paths changes. It should accept 2 arguments
+  * *changed_files* - a list of maps, each containing info about changed files
+  * *all_files* - a list of maps, each containing info about all files that matched the path
 
 
 #### Adding watch groups
 
 ```elixir
-Rotor.add_group(name, files, rotor_function)
+Rotor.watch(name, files, rotor_function)
 ```
 
 The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other little functions called `rotors`, that run certain tasks.
@@ -68,7 +59,7 @@ The rotor function is passed info about the list of files that match the paths s
 
 ```elixir
 paths = ["assets/javascripts/libs/*.js", "assets/javascripts/*.js"]
-Rotor.add_group :javascripts, paths, fn(changed_files, all_files)->
+Rotor.watch :javascripts, paths, fn(changed_files, all_files)->
   read_files(all_files)
   |> concat
   |> write_to("priv/static/assets/app.js")
@@ -92,7 +83,7 @@ You can also write your own. Check the *"Writing custom rotors"* section below.
 * To remove a watch group
 
     ```elixir
-    Rotor.remove_group(group_name)
+    Rotor.stop_watching(group_name)
     ```
 
 * To list groups
@@ -111,7 +102,7 @@ You can also write your own. Check the *"Writing custom rotors"* section below.
 
 ```elixir
 paths = ["assets/stylesheets/libs/*.css", "assets/stylesheets/*.css"]
-Rotor.add_group :stylesheets, paths, fn(changed_files, all_files)->
+Rotor.watch :stylesheets, paths, fn(changed_files, all_files)->
   read_files(all_files)
   |> concat
   |> write_to("app.css")
@@ -119,7 +110,7 @@ end
 
 
 paths = ["assets/images/*", "assets/fonts/*"]
-Rotor.add_group :images_and_fonts, paths, fn(changed_files, all_files)->
+Rotor.watch :images_and_fonts, paths, fn(changed_files, all_files)->
   copy_files(files, "priv/static/assets")
 end
 ```
