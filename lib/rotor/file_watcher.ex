@@ -1,52 +1,38 @@
 defmodule Rotor.FileWatcher do
-  use GenServer
   import Rotor.Utils
+  use GenServer
 
-  def add_group(name) do
-    GenServer.call Rotor.FileWatcher, {:add, name}
+
+  # group_info will have %{name: name, interval: interval}
+  def init(group_info) do
+    {:ok, group_info}
   end
 
 
-  def remove_group(name) do
-    GenServer.call Rotor.FileWatcher, {:remove, name}
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
   end
 
 
-  def init([]) do
-    {:ok, []}
-  end
-
-
-  def handle_info({:trigger, name}, groups) do
-    {:ok, group} = Rotor.WatchGroupServer.get_group(name)
-
-    {changed_files, updated_index} = update_file_index_timestamps(group.file_index)
-    :ok = Rotor.WatchGroupServer.update_file_index(name, updated_index)
-    Rotor.EventServer.
-
-    {:noreply, groups}
-  end
-
-
-  def handle_call({:add, name}, _from, groups) do
-    updated_groups = if :lists.member(name, groups) do
-      [name | groups]
-    else
-      groups
+  def handle_call(:poll, _from, state) do
+    {changed_files, file_index} = case get_in(state, [:file_index]) do
+      nil ->
+        {:ok, group_info} = Rotor.WatchGroupServer.get_group(state.name)
+        file_index = build_file_index(group_info.paths)
+        state = put_in state[:file_index], file_index
+        {[], file_index}
+      index ->
+        update_file_index_timestamps(index)
     end
-    {:reply, :ok, updated_groups}
-  end
 
-
-  def handle_call({:remove, name}, _from, groups) do
-    updated_groups = if :lists.member(name, groups) do
-      :lists.delete(name, groups)
-    else
-      groups
+    if changed_files != [] do
+      state = put_in state[:file_index], file_index
+      Rotor.WatchGroupServer.trigger(state.name, changed_files, HashDict.values(file_index))
     end
-    {:reply, :ok, updated_groups}
+
+    Process.send_after(self, :poll, state.interval)
+    {:reply, :ok, state}
   end
 
 
-  Process.send_after(Rotor.Server, {:trigger, group_name, false}, 2500)
 end

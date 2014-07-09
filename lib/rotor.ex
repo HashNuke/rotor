@@ -11,8 +11,7 @@ defmodule Rotor do
     children = [
       # Define workers and child supervisors to be supervised
       worker(Rotor.ConfigServer, []),
-      worker(Rotor.WatchGroupServer, []),
-      worker(Rotor.Server, [])
+      worker(Rotor.WatchGroupServer, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/Supervisor.html
