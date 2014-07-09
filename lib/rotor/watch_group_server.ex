@@ -1,55 +1,88 @@
 defmodule Rotor.WatchGroupServer do
+  use GenServer
+
 
   def start_link do
-    Agent.start_link(&{ Map.new }, name: __MODULE__)
+    GenServer.start(__MODULE__, [], name: __MODULE__)
+  end
+
+
+  def init([]) do
+    {:ok, Map.new}
+  end
+
+
+  def handle_call(:groups, _from, state) do
+    {:reply, state, state}
+  end
+
+
+  def handle_call({:group, name}, _from, state) do
+    {:reply, get_in(state, [name]), state}
+  end
+
+
+  def handle_call({:add, name, paths, rotor_function, options}, _from, groups) do
+    group = %{
+      paths: paths,
+      rotor_function: rotor_function,
+      options: set_default_options(options),
+      file_watcher_pid: start_file_watcher(name)
+    }
+
+    Process.link(group.file_watcher_pid)
+    updated_groups = put_in groups[name], group
+    {:reply, :ok, updated_groups}
+  end
+
+
+  def handle_call({:remove, name}, _from, groups) do
+    file_watcher_pid = get_in groups, [name, :file_watcher_pid]
+    if Process.alive?(file_watcher_pid) do
+      Process.unlink(file_watcher_pid)
+      Process.exit(file_watcher_pid, :kill)
+    end
+    updated_groups = Map.delete groups, name
+    {:reply, :ok, updated_groups}
+  end
+
+
+  def handle_cast({:trigger, name, changed_files, all_files}, groups) do
+    group = get_in groups, [name]
+
+    try do
+      apply group.rotor_function, [changed_files, all_files]
+    rescue
+      error ->
+        IO.puts "Some problem running rotor function for group: #{name}"
+        IO.inspect error
+    end
+    {:noreply, groups}
+  end
+
+
+  def groups do
+    GenServer.call __MODULE__, :groups
   end
 
 
   def group(name) do
-    Agent.get __MODULE__, fn(state)->
-      {:ok, state[name]}
-    end
+    GenServer.call __MODULE__, {:group, name}
   end
 
 
   def add(name, paths, rotor_function, options \\ %{}) do
-    Agent.get_and_update __MODULE__, fn(groups)->
-      group = %{
-        paths: paths,
-        rotor_function: rotor_function,
-        options: set_default_options(options),
-        file_watcher_pid: start_file_watcher(name)
-      }
-
-      group = put_in group, [:file_watcher_pid], file_watcher_pid
-      updated_groups = put_in groups[name], group
-      :ok = Rotor.FileWatcher.add_group(name)
-      {:ok, updated_groups}
-    end
+    GenServer.call __MODULE__, {:add, name, paths, rotor_function, options}
   end
 
 
   def remove(name) do
-    Agent.get_and_update __MODULE__,  fn(groups)->
-      # Stop file watched process
-      updated_groups = Map.delete groups, name
-      {:ok, updated_groups}
-    end
+    GenServer.call __MODULE__, {:remove, name}
   end
 
 
   def trigger(name, changed_files, all_files) do
-    Agent.get __MODULE__, fn(state)->
-      group = get_in state, [name]
-
-      try do
-        apply group.rotor_function, [changed_files, all_files]
-      rescue
-        error ->
-          IO.puts "Some problem running rotor function for group: #{name}"
-          IO.inspect error
-      end
-    end
+    GenServer.call __MODULE__, {:trigger, name, changed_files, all_files}
   end
 
 
@@ -60,6 +93,7 @@ defmodule Rotor.WatchGroupServer do
 
 
   defp start_file_watcher(name) do
-    GenServer.start Rotor.FileWatcher, %{name: group.name}
+    {:ok, pid} = GenServer.start Rotor.FileWatcher, %{name: name}
+    pid
   end
 end

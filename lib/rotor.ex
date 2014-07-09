@@ -32,14 +32,8 @@ defmodule Rotor do
   end
 
 
-  # def groups do
-  #   current_state = Rotor.Server.call :current_state
-  #   Map.keys current_state.groups
-  # end
-
-
-  def run(group_name) do
-    Rotor.EventServer.trigger group_name
+  def groups do
+    Rotor.WatchGroupServer.groups
   end
 
 

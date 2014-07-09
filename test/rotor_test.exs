@@ -4,31 +4,31 @@ defmodule RotorTest do
   import Rotor.BasicRotors
 
   test "state should be initialized on server start" do
-    current_state = Rotor.Server.call(:current_state)
-    assert %{:groups => %{}} == current_state
+    current_state = Rotor.groups
+    assert %{} == current_state
   end
 
 
   test "should be able to add and remove groups" do
     output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(changed_files, all_files)->
+    Rotor.watch :javascripts, ["test/samples/*.js"], fn(_changed_files, all_files)->
       read_files(all_files)
       |> concat
       |> output_to(output_path)
     end
 
-    current_state = Rotor.Server.call(:current_state)
-    assert current_state.groups[:javascripts] != nil
+    current_state = Rotor.groups
+    assert get_in(current_state, [:javascripts]) != nil
 
-    Rotor.remove_group(:javascripts)
-    current_state = Rotor.Server.call(:current_state)
-    assert %{:groups => %{}} == current_state
+    Rotor.stop_watching(:javascripts)
+    current_state = Rotor.groups
+    assert %{} == current_state
   end
 
 
   test "should watch for changes and run pipeline functions" do
     output_path = "test/samples/outputs/app.js"
-    Rotor.add_group :javascripts, ["test/samples/*.js"], fn(changed_files, all_files)->
+    Rotor.watch :javascripts, ["test/samples/*.js"], fn(_changed_files, all_files)->
       read_files(all_files)
       |> concat
       |> output_to(output_path)
@@ -39,6 +39,6 @@ defmodule RotorTest do
     {:ok, contents} = File.read output_path
     assert Regex.match?(~r/x=1/, contents) && Regex.match?(~r/y=2/, contents)
 
-    Rotor.remove_group(:javascripts)
+    Rotor.stop_watching(:javascripts)
   end
 end
