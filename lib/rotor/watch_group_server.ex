@@ -17,7 +17,7 @@ defmodule Rotor.WatchGroupServer do
       group = %{
         paths: paths,
         rotor_function: rotor_function,
-        options: options
+        options: set_default_options(options)
       }
 
       updated_groups = put_in groups[name], group
@@ -42,10 +42,16 @@ defmodule Rotor.WatchGroupServer do
       try do
         apply group.rotor_function, [changed_files, all_files]
       rescue
-        _ ->
+        error ->
           IO.puts "Some problem running rotor function for group: #{name}"
+          IO.inspect error
       end
     end
   end
 
+
+  defp set_default_options(options) do
+    %{interval: 2500}
+    |> Map.merge options
+  end
 end

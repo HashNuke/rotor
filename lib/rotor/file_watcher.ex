@@ -30,7 +30,8 @@ defmodule Rotor.FileWatcher do
       Rotor.WatchGroupServer.trigger(state.name, changed_files, HashDict.values(file_index))
     end
 
-    Process.send_after(self, :poll, state.interval)
+    interval = get_in group_info, [:options, :interval]
+    Process.send_after(self, :poll, interval)
     {:reply, :ok, state}
   end
 
