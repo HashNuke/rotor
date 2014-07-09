@@ -29,6 +29,7 @@ defmodule Rotor.Mixfile do
   defp package do
     [
       contributors: ["Akash Manohar J"],
+      licenses: ["MIT"],
       links: %{ "GitHub" => "https://github.com/HashNuke/rotor" }
     ]
   end
