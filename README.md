@@ -1,5 +1,17 @@
 # Rotor
 
+
+WatchGroupServer
+  * stores data about watch groups
+
+FileWatcher
+  * watches for changes and triggers rotor functions when required
+
+EventServer
+  * runs events upto the possible limit
+  * if the parallel event limit is triggered, then the event is ignored
+
+
 Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that needs to be run when files change.
 
 > *[Wreckers][1] don't call for backup, they call for cleanup ~!*
@@ -11,12 +23,14 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 
 ```elixir
 paths = ["assets/libs/*.coffee", "assets/*.coffee"]
-Rotor.add_group :coffee_assets, paths, fn(changed_files, all_files)->
+Rotor.watch :coffee_assets, paths, fn(changed_files, all_files)->
   read_files(all_files)
   |> coffee
   |> concat
   |> write_to("priv/static/assets/app.js")
 end
+
+Rotor.run :coffee_assets
 ```
 
 *The above example uses the [coffee_rotor](https://github.com/HashNuke/coffee_rotor).*
