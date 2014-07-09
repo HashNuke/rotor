@@ -1,7 +1,7 @@
 defmodule Rotor.WatchGroupServer do
 
   def start_link do
-    Agent.start_link(fn -> Map.new end, name: __MODULE__)
+    Agent.start_link(&{ Map.new }, name: __MODULE__)
   end
 
 
@@ -17,9 +17,11 @@ defmodule Rotor.WatchGroupServer do
       group = %{
         paths: paths,
         rotor_function: rotor_function,
-        options: set_default_options(options)
+        options: set_default_options(options),
+        file_watcher_pid: start_file_watcher(name)
       }
 
+      group = put_in group, [:file_watcher_pid], file_watcher_pid
       updated_groups = put_in groups[name], group
       :ok = Rotor.FileWatcher.add_group(name)
       {:ok, updated_groups}
@@ -29,6 +31,7 @@ defmodule Rotor.WatchGroupServer do
 
   def remove(name) do
     Agent.get_and_update __MODULE__,  fn(groups)->
+      # Stop file watched process
       updated_groups = Map.delete groups, name
       {:ok, updated_groups}
     end
@@ -53,5 +56,10 @@ defmodule Rotor.WatchGroupServer do
   defp set_default_options(options) do
     %{interval: 2500}
     |> Map.merge options
+  end
+
+
+  defp start_file_watcher(name) do
+    GenServer.start Rotor.FileWatcher, %{name: group.name}
   end
 end

@@ -3,7 +3,7 @@ defmodule Rotor.FileWatcher do
   use GenServer
 
 
-  # group_info will have %{name: name, interval: interval}
+  # group_info will have %{name: name}
   def init(group_info) do
     {:ok, group_info}
   end
