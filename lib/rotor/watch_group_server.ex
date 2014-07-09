@@ -31,6 +31,7 @@ defmodule Rotor.WatchGroupServer do
     }
 
     Process.link(group.file_watcher_pid)
+    send(group.file_watcher_pid, :poll)
     updated_groups = put_in groups[name], group
     {:reply, :ok, updated_groups}
   end
@@ -62,7 +63,7 @@ defmodule Rotor.WatchGroupServer do
 
 
   def trigger(name, changed_files, all_files) do
-    GenServer.call __MODULE__, {:trigger, name, changed_files, all_files}
+    GenServer.cast __MODULE__, {:trigger, name, changed_files, all_files}
   end
 
 

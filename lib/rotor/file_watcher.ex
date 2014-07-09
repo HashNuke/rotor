@@ -14,10 +14,10 @@ defmodule Rotor.FileWatcher do
   end
 
 
-  def handle_call(:poll, _from, state) do
+  def handle_info(:poll, state) do
+    group_info = Rotor.group(state.name)
     {changed_files, file_index} = case get_in(state, [:file_index]) do
       nil ->
-        {:ok, group_info} = Rotor.group(state.name)
         file_index = build_file_index(group_info.paths)
         state = put_in state[:file_index], file_index
         {[], file_index}
@@ -32,7 +32,7 @@ defmodule Rotor.FileWatcher do
 
     interval = get_in group_info, [:options, :interval]
     Process.send_after(self, :poll, interval)
-    {:reply, :ok, state}
+    {:noreply, state}
   end
 
 end
