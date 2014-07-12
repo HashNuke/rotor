@@ -16,6 +16,7 @@ defmodule Rotor.BasicRotors do
 
 
   def output_to(contents, output_path) do
+    IO.inspect "output to this thing #{output_path}"
     :ok = File.write output_path, contents
   end
 

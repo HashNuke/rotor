@@ -50,7 +50,7 @@ defmodule Rotor.WatchGroupServer do
   end
 
 
-  def handle_call({:poll, name}, groups) do
+  def handle_call({:poll, name}, _from, groups) do
     group = get_in groups, [name]
     send(group.file_watcher_pid, :poll)
     {:reply, :ok, groups}
