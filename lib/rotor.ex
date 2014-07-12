@@ -48,6 +48,11 @@ defmodule Rotor do
   end
 
 
+  def poll(name) do
+    GenServer.call Rotor.WatchGroupServer, {:poll, name}
+  end
+
+
   defp format_paths(paths) do
     cond do
       String.valid?(paths) || :io_lib.char_list(paths) -> [paths]

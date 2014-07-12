@@ -31,8 +31,14 @@ defmodule Rotor.FileWatcher do
     end
 
     interval = get_in group_info, [:options, :interval]
-    Process.send_after(self, :poll, interval)
+    if interval != :manual do
+      schedule_next_poll(interval)
+    end
     {:noreply, state}
   end
 
+
+  def schedule_next_poll(interval) do
+    Process.send_after(self, :poll, interval)
+  end
 end

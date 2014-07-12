@@ -31,7 +31,9 @@ defmodule Rotor.WatchGroupServer do
     }
 
     Process.link(group.file_watcher_pid)
-    send(group.file_watcher_pid, :poll)
+    if group.options.interval != :manual do
+      send(group.file_watcher_pid, :poll)
+    end
     updated_groups = put_in groups[name], group
     {:reply, :ok, updated_groups}
   end
@@ -45,6 +47,13 @@ defmodule Rotor.WatchGroupServer do
     end
     updated_groups = Map.delete groups, name
     {:reply, :ok, updated_groups}
+  end
+
+
+  def handle_call({:poll, name}, groups) do
+    group = get_in groups, [name]
+    send(group.file_watcher_pid, :poll)
+    {:reply, :ok, groups}
   end
 
 
@@ -77,4 +86,5 @@ defmodule Rotor.WatchGroupServer do
     {:ok, pid} = GenServer.start Rotor.FileWatcher, %{name: name}
     pid
   end
+
 end
