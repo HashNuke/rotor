@@ -4,7 +4,7 @@ defmodule Rotor.Mixfile do
   def project do
     [app: :rotor,
      version: "0.2.1",
-     elixir: ">= 0.14.2",
+     elixir: ">= 0.15.0",
      description: description,
      package: package,
      deps: deps]
@@ -14,14 +14,14 @@ defmodule Rotor.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [],
+    [applications: [:logger],
      mod: {Rotor, []}]
   end
 
 
   defp description do
     """
-    Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything that requires being run when files change.
+    Rotor is a build system for Elixir projects. Use it to compile things, run commands or do anything when files change.
     """
   end
 

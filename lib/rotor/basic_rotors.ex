@@ -1,6 +1,5 @@
 defmodule Rotor.BasicRotors do
 
-
   def concat(files) do
     Enum.map_join(files, "\n", fn(file)->
       file.contents

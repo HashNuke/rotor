@@ -1,80 +1,67 @@
-defmodule Rotor.WatchGroupServer do
+defmodule Rotor.GroupServer do
   use GenServer
 
 
   def start_link do
-    GenServer.start(__MODULE__, [], name: __MODULE__)
+    Agent.start_link(fn-> %{} end, name: __MODULE__)
   end
 
 
-  def init([]) do
-    {:ok, Map.new}
+  def all do
+    Agent.get __MODULE__, &(&1)
   end
 
 
-  def handle_call(:groups, _from, state) do
-    {:reply, state, state}
+  def get(name) do
+    Agent.get __MODULE__, &(get_in &1, [name])
   end
 
 
-  def handle_call({:group, name}, _from, state) do
-    {:reply, get_in(state, [name]), state}
+  def add(name, paths, rotor_fn, options \\ %{}) do
+    paths = format_paths(paths)
+    {group_info, _} = Agent.get_and_update __MODULE__, fn(groups)->
+                        group_info = build_group_info(paths, rotor_fn, options)
+                        updated_groups = put_in groups, [name], group_info
+                        {group_info, updated_groups}
+                      end
+    start_file_watcher(name, group_info.options.manual)
+    :ok
   end
 
 
-  def handle_call({:add, name, paths, rotor_function, options}, _from, groups) do
-    group = %{
-      paths: paths,
-      rotor_function: rotor_function,
-      options: set_default_options(options),
-      file_watcher_pid: start_file_watcher(name)
-    }
-
-    Process.link(group.file_watcher_pid)
-    send(group.file_watcher_pid, :poll)
-    updated_groups = put_in groups[name], group
-    {:reply, :ok, updated_groups}
-  end
-
-
-  def handle_call({:remove, name}, _from, groups) do
-    file_watcher_pid = get_in groups, [name, :file_watcher_pid]
-    if Process.alive?(file_watcher_pid) do
-      Process.unlink(file_watcher_pid)
-      Process.exit(file_watcher_pid, :kill)
+  defp start_file_watcher(name, is_manual) do
+    case Rotor.FileWatcherPool.add(name, is_manual) do
+      {:error, {:already_started, _pid}} ->
+        Rotor.FileWatcherPool.remove(name)
+        start_file_watcher(name, is_manual)
+      _ -> :ok
     end
-    updated_groups = Map.delete groups, name
-    {:reply, :ok, updated_groups}
   end
 
 
-  def handle_cast({:trigger, name, changed_files, all_files}, groups) do
-    group = get_in groups, [name]
-
-    try do
-      apply group.rotor_function, [changed_files, all_files]
-    rescue
-      error ->
-        IO.puts "Some problem running rotor function for group: #{name}"
-        IO.inspect error
+  def remove(name) do
+    Agent.update __MODULE__, fn(groups)->
+      Rotor.FileWatcherPool.remove(name)
+      Map.delete groups, name
     end
-    {:noreply, groups}
-  end
-
-
-  def trigger(name, changed_files, all_files) do
-    GenServer.cast __MODULE__, {:trigger, name, changed_files, all_files}
   end
 
 
   defp set_default_options(options) do
-    %{interval: 2500}
-    |> Map.merge options
+    %{interval: 2500, manual: false} |> Map.merge(options)
   end
 
 
-  defp start_file_watcher(name) do
-    {:ok, pid} = GenServer.start Rotor.FileWatcher, %{name: name}
-    pid
+  defp build_group_info(paths, rotor_fn, options_passed) do
+    options = set_default_options(options_passed)
+    %{paths: paths, rotor_fn: rotor_fn, options: options}
+  end
+
+
+  defp format_paths(paths) do
+    cond do
+      String.valid?(paths) || :io_lib.char_list(paths) -> [paths]
+      true -> paths
+    end
   end
 end

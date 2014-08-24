@@ -1,6 +1,6 @@
 defmodule Rotor.ConfigServer do
   def start_link do
-    Agent.start_link(fn -> %{:parallel_limit => 1} end, name: __MODULE__)
+    Agent.start_link(fn -> %{} end, name: __MODULE__)
   end
 
 
