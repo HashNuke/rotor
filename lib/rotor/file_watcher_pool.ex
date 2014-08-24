@@ -14,7 +14,7 @@ defmodule Rotor.FileWatcherPool do
 
   def add(group_name, is_manual) do
     watcher_info = %{name: group_name, manual: is_manual}
-    child = worker(Rotor.FileWatcher, [[watcher_info]], id: unique_id(group_name))
+    child = worker(Rotor.FileWatcher, [watcher_info], id: unique_id(group_name))
     Supervisor.start_child(__MODULE__, child)
   end
 

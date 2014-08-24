@@ -44,5 +44,4 @@ defmodule Rotor.FileWatcher do
 
     {:noreply, state}
   end
-
 end

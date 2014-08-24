@@ -26,17 +26,18 @@ defmodule Rotor.GroupServer do
       {group_info, updated_groups}
     end
 
-    start_file_watcher(name, group_info.options.manual)
+    start_file_watcher(name, group_info.options)
     :ok
   end
 
 
-  defp start_file_watcher(name, is_manual) do
-    case Rotor.FileWatcherPool.add(name, is_manual) do
+  defp start_file_watcher(name, options) do
+    case Rotor.FileWatcherPool.add(name, options.manual) do
       {:error, {:already_started, _pid}} ->
         Rotor.FileWatcherPool.remove(name)
-        start_file_watcher(name, is_manual)
-      _ -> :ok
+        start_file_watcher(name, options)
+      {:ok, pid} ->
+        Process.send_after(pid, :poll, options.interval)
     end
   end
 
