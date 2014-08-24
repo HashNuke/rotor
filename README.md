@@ -18,9 +18,9 @@ Rotor.watch :coffee_assets, paths, fn(changed_files, all_files)->
   |> write_to("priv/static/assets/app.js")
 end
 
-# Either touch a file that's in the path provided or forcefully run the task like below
-Rotor.run :coffee_assets
 ```
+
+`touch` a file that's in the path provided and watch the Rotor function being run.
 
 *The above example uses the [coffee_rotor](https://github.com/HashNuke/coffee_rotor).*
 
@@ -51,7 +51,11 @@ A set of paths you want to watch is called a *watch group*. Each watch group has
 #### Adding watch groups
 
 ```elixir
+# With default options
 Rotor.watch(name, files, rotor_function)
+
+# With options
+Rotor.watch(name, files, rotor_function, options)
 ```
 
 The rotor function is passed info about the list of files that match the paths specified. The rotor function calls other little functions called `rotors`, that run certain tasks.
@@ -65,6 +69,21 @@ Rotor.watch :javascripts, paths, fn(changed_files, all_files)->
   |> write_to("priv/static/assets/app.js")
 end
 ```
+
+The fourth argument is options. It accepts a map. The following are valid options:
+
+* `manual` - defaults to false. If set to true, paths will only be polled when `Rotor.run/1` or `Rotor.run_async/1` is called.
+* `interval` - defaults to 2500 milliseconds (2.5 seconds). This is the interval at which files are checked for changes.
+
+
+#### Manually running rotors
+
+If you want files to be polled only when you say so (and not at intervals). Then pass the `manual` option as `true` when adding a group. Then use one of the following functions to trigger a poll.
+
+* `Rotor.run(group_name)` - will poll paths and run the Rotor function synchronously
+* `Rotor.run_async(group_name)` - will poll paths and run the Rotor function asynchronously
+
+
 
 #### Rotors
 
