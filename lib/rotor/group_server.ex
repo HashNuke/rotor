@@ -19,11 +19,13 @@ defmodule Rotor.GroupServer do
 
   def add(name, paths, rotor_fn, options \\ %{}) do
     paths = format_paths(paths)
-    {group_info, _} = Agent.get_and_update __MODULE__, fn(groups)->
-                        group_info = build_group_info(paths, rotor_fn, options)
-                        updated_groups = put_in groups, [name], group_info
-                        {group_info, updated_groups}
-                      end
+
+    group_info = Agent.get_and_update __MODULE__, fn(groups)->
+      group_info = build_group_info(paths, rotor_fn, options)
+      updated_groups = put_in groups, [name], group_info
+      {group_info, updated_groups}
+    end
+
     start_file_watcher(name, group_info.options.manual)
     :ok
   end

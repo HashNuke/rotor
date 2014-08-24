@@ -4,7 +4,7 @@ defmodule RotorTest do
   import Rotor.BasicRotors
 
   test "state should be initialized on server start" do
-    current_state = Rotor.groups
+    current_state = Rotor.all_groups
     assert %{} == current_state
   end
 
@@ -17,11 +17,11 @@ defmodule RotorTest do
       |> output_to(output_path)
     end
 
-    current_state = Rotor.groups
+    current_state = Rotor.all_groups
     assert get_in(current_state, [:javascripts]) != nil
 
-    Rotor.stop_watching(:javascripts)
-    current_state = Rotor.groups
+    Rotor.remove_group(:javascripts)
+    current_state = Rotor.all_groups
     assert %{} == current_state
   end
 
@@ -35,7 +35,6 @@ defmodule RotorTest do
     end
 
     :ok = :timer.sleep(3000)
-
     {:ok, contents} = File.read output_path
     assert Regex.match?(~r/x=1/, contents) && Regex.match?(~r/y=2/, contents)
 
