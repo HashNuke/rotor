@@ -35,8 +35,9 @@ defmodule RotorTest do
       |> output_to(output_path)
     end
 
+    :ok = :timer.sleep(1000)
     :ok = File.touch "test/samples/app1.js"
-    :ok = :timer.sleep(3000)
+    :ok = :timer.sleep(2000)
     Rotor.stop_watching(:javascripts_pipeline_test)
 
     {:ok, contents} = File.read output_path
