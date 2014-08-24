@@ -2,6 +2,7 @@ defmodule Rotor.Runner do
   require Logger
 
   def run(name, changed_files, all_files) do
+    Logger.debug "Run rotor function for #{name}"
     group = Rotor.group_info name
 
     try do

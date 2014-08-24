@@ -36,8 +36,7 @@ defmodule Rotor.GroupServer do
       {:error, {:already_started, _pid}} ->
         Rotor.FileWatcherPool.remove(name)
         start_file_watcher(name, options)
-      {:ok, pid} ->
-        Process.send_after(pid, :poll, options.interval)
+      {:ok, pid} -> send(pid, :poll)
     end
   end
 
