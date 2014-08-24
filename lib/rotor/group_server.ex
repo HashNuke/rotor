@@ -26,8 +26,31 @@ defmodule Rotor.GroupServer do
       {group_info, updated_groups}
     end
 
-    start_file_watcher(name, group_info.options)
+    pid = start_file_watcher(name, group_info.options)
+    Agent.update __MODULE__, fn(groups)->
+      put_in groups, [name, :file_watcher_pid], pid
+    end
     :ok
+  end
+
+
+  def remove(name) do
+    Agent.update __MODULE__, fn(groups)->
+      Rotor.FileWatcherPool.remove(name)
+      Map.delete groups, name
+    end
+  end
+
+
+  def run(name) do
+    group_info = Rotor.group_info name
+    GenServer.call group_info.file_watcher_pid, :poll
+  end
+
+
+  def run_async(name) do
+    group_info = Rotor.group_info name
+    send group_info.file_watcher_pid, :poll
   end
 
 
@@ -36,15 +59,9 @@ defmodule Rotor.GroupServer do
       {:error, {:already_started, _pid}} ->
         Rotor.FileWatcherPool.remove(name)
         start_file_watcher(name, options)
-      {:ok, pid} -> send(pid, :poll)
-    end
-  end
-
-
-  def remove(name) do
-    Agent.update __MODULE__, fn(groups)->
-      Rotor.FileWatcherPool.remove(name)
-      Map.delete groups, name
+      {:ok, pid} ->
+        send(pid, :poll)
+        pid
     end
   end
 

@@ -2,7 +2,6 @@ defmodule Rotor.FileWatcher do
   import Rotor.Utils
   use GenServer
 
-
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args)
   end
@@ -18,7 +17,21 @@ defmodule Rotor.FileWatcher do
   end
 
 
+  # This is for synchronous poll
+  def handle_call(:poll, _from, state) do
+    new_state = poll(state)
+    {:reply, :ok, new_state}
+  end
+
+
+  # This is for async poll
   def handle_info(:poll, state) do
+    new_state = poll(state)
+    {:noreply, new_state}
+  end
+
+
+  defp poll(state) do
     group_info = Rotor.group_info(state.name)
     {changed_files, file_index} = case get_in(state, [:file_index]) do
       nil ->
@@ -31,7 +44,7 @@ defmodule Rotor.FileWatcher do
 
     state = run_rotor_function(state, changed_files, file_index)
     schedule_poll(group_info.options.manual, group_info.options.interval)
-    {:noreply, state}
+    state
   end
 
 
@@ -43,7 +56,7 @@ defmodule Rotor.FileWatcher do
   end
 
 
-  defp run_rotor_function(state, [], file_index) do
+  defp run_rotor_function(state, [], _file_index) do
     state
   end
 

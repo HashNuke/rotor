@@ -12,7 +12,10 @@ defmodule Rotor do
   defdelegate watch(name, paths, rotor_fn), to: Rotor.GroupServer, as: :add
 
 
+  defdelegate run(name), to: Rotor.GroupServer
+  defdelegate run_async(name), to: Rotor.GroupServer
+
+
   defdelegate remove_group(name),  to: Rotor.GroupServer, as: :remove
   defdelegate stop_watching(name), to: Rotor.GroupServer, as: :remove
-
 end
