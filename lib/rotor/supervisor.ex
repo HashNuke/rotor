@@ -8,6 +8,7 @@ defmodule Rotor.Supervisor do
   def init([]) do
     children = [
       worker(Rotor.ConfigServer, []),
+      worker(Rotor.GroupServer, []),
       supervisor(Rotor.FileWatcherPool, [])
     ]
 
