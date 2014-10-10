@@ -26,4 +26,10 @@ defmodule Rotor.BasicRotors do
     end
   end
 
+
+  def reload_modules([]), do: true
+
+  def reload_modules([file | files]) do
+    Code.load_file(file.path)
+  end
 end
