@@ -62,7 +62,11 @@ end
 
 ### Usage
 
-#### What is needed?
+* Add rotor as a dependency to your `mix.exs`
+* Add `:rotor` to your app's start list (read below)
+* Define watch groups in `config/rotors.exs`
+
+#### What is a watch group?
 
 A set of paths you want to watch is called a *Watch group"*. Each watch group has the following:
 
@@ -74,7 +78,7 @@ A set of paths you want to watch is called a *Watch group"*. Each watch group ha
 
 #### Where to define watch groups?
 
-`config/rotors.exs` is prefered. But if you want to define them elsewhere feel free.
+`config/rotors.exs` is prefered. But if you want to define them elsewhere feel free. Take a look at examples
 
 #### How to run in only certain environments
 
@@ -146,7 +150,7 @@ If you want files to be polled only when you say so (and not at intervals). Then
 
 #### Rotors
 
-Rotor ships with a few simple rotors in the `Rotor.BasicRotors` module.
+Rotor ships with a few simple helper functions in the `Rotor.BasicRotors` module.
 
 * `read_files(files)` - reads contents of files, and returns files with a property called `contents`
 * `copy_files(files, destination_dir)` - copies files to destination_dir
