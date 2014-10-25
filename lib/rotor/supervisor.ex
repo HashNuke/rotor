@@ -12,6 +12,13 @@ defmodule Rotor.Supervisor do
       supervisor(Rotor.FileWatcherPool, [])
     ]
 
-    supervise(children, strategy: :one_for_one)
+
+    case supervise(children, strategy: :one_for_one) do
+      {:ok, something} = result ->
+        Rotor.load_rotors
+        result
+      _anything = result ->
+        result
+    end
   end
 end
