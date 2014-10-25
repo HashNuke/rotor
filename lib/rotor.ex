@@ -2,7 +2,15 @@ defmodule Rotor do
   use Application
 
   def start(_type, _args) do
-    Rotor.Supervisor.start_link
+
+    # If the supervisor is started correctly,
+    # load rotors from the default rotors file
+    case Rotor.Supervisor.start_link do
+      {:ok, _pid} = result ->
+        load_rotors
+        result
+      anything -> anything
+    end
   end
 
 

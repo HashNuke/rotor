@@ -12,15 +12,6 @@ defmodule Rotor.Supervisor do
       supervisor(Rotor.FileWatcherPool, [])
     ]
 
-
-    # If the supervisor is started correctly,
-    # load rotors from the default rotors file
-    case supervise(children, strategy: :one_for_one) do
-      {:ok, something} = result ->
-        Rotor.load_rotors
-        result
-      _anything = result ->
-        result
-    end
+    supervise(children, strategy: :one_for_one)
   end
 end
