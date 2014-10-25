@@ -80,14 +80,14 @@ A set of paths you want to watch is called a *Watch group"*. Each watch group ha
 
 `config/rotors.exs` is prefered. But if you want to define them elsewhere feel free. Take a look at examples
 
-#### How to run in only certain environments
+#### How to run in only certain environments?
 
 Lets say you want to run rotor only in development environment. In `mix.exs` of your project, the `application` function usually looks like this:
 
 ```elixir
 def application do
   [applications: [:logger],
-   mod: {Rotor, []}]
+   mod: {YourApp, []}]
 end
 ```
 
@@ -96,7 +96,7 @@ you can change that to something like the following:
 ```elixir
 def application do
   [applications: app_list(Mix.env),
-   mod: {Rotor, []}]
+   mod: {YourApp, []}]
 end
 
 # For dev env we start rotor along with other apps
