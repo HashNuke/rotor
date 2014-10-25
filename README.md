@@ -9,6 +9,19 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 
 **Define your rotor watch groups in `config/rotors.exs` in your project and they'll be loaded when your app starts**
 
+### Features
+
+* Works with any web framework or even plain mix projects
+* Easy to use
+* Extendable with simple functions
+* Can be configured to run commands or code or go to the moon.
+
+### Usage
+
+* Add rotor as a dependency to your `mix.exs`
+* Add `:rotor` to your app's start list (read below)
+* Define watch groups in `config/rotors.exs`
+
 
 ### Example 1: Reload Elixir modules whenever they change
 
@@ -51,20 +64,7 @@ end
 > **NOTE:** Rotor is *not* a replacement for mix. It is intended to be used as your sidekick during development.
 
 
-### Features
-
-* Works with any web framework or even plain mix projects
-* Easy to use
-* Extendable with simple functions
-* Can be configured to run commands or code or go to the moon.
-* Inspired by [gulp](https://github.com/gulpjs/gulp)
-* Have as many as rotors as you want
-
-### Usage
-
-* Add rotor as a dependency to your `mix.exs`
-* Add `:rotor` to your app's start list (read below)
-* Define watch groups in `config/rotors.exs`
+### Details
 
 #### What is a watch group?
 
@@ -208,3 +208,5 @@ Checkout [coffee_rotor](https://github.com/HashNuke/coffee_rotor), which provide
 ### License
 
 Copyright © 2014, Akash Manohar J, under the [MIT License](http://opensource.org/licenses/MIT)
+
+> Inspired by [gulp](https://github.com/gulpjs/gulp)
