@@ -13,6 +13,8 @@ defmodule Rotor.Supervisor do
     ]
 
 
+    # If the supervisor is started correctly,
+    # load rotors from the default rotors file
     case supervise(children, strategy: :one_for_one) do
       {:ok, something} = result ->
         Rotor.load_rotors
