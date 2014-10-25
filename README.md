@@ -62,19 +62,49 @@ end
 
 ### Usage
 
-#### Where to define watch groups?
-
-`config/rotors.exs`.
-
 #### What is needed?
 
-Each watch group, has a set of paths you want to watch and has the following
+A set of paths you want to watch is called a *Watch group"*. Each watch group has the following:
 
 * name
 * a list of paths to watch
 * *rotor function* - a function that is run everytime any of the files in the paths changes. It should accept 2 arguments
   * *changed_files* - a list of maps, each containing info about a changed file
   * *all_files* - a list of maps, each containing info about all files that matched the path
+
+#### Where to define watch groups?
+
+`config/rotors.exs` is prefered. But if you want to define them elsewhere feel free.
+
+#### How to run in only certain environments
+
+Lets say you want to run rotor only in development environment. In `mix.exs` of your project, the `application` function usually looks like this:
+
+```elixir
+def application do
+  [applications: [:logger],
+   mod: {Rotor, []}]
+end
+```
+
+you can change that to something like the following:
+
+```elixir
+def application do
+  [applications: app_list(Mix.env),
+   mod: {Rotor, []}]
+end
+
+# For dev env we start rotor along with other apps
+defp app_list(:dev) do
+  app_list(:prod) ++ [:rotor]
+end
+
+# For all other env we only start logger
+defp app_list(_) do
+  [:logger]
+end
+```
 
 
 #### How to define watch groups?
@@ -105,7 +135,7 @@ The fourth argument is options. It accepts a map. The following are valid option
 * `interval` - defaults to 2500 milliseconds (2.5 seconds). This is the interval at which files are checked for changes.
 
 
-#### Manually running watch group rotor function
+#### Manually running watch group's rotor function
 
 If you want files to be polled only when you say so (and not at intervals). Then pass the `manual` option as `true` when adding a group. Then use one of the following functions to trigger a poll.
 
@@ -116,7 +146,7 @@ If you want files to be polled only when you say so (and not at intervals). Then
 
 #### Rotors
 
-Rotor ships with a few simple rotors in the `Rotor.Basic` module.
+Rotor ships with a few simple rotors in the `Rotor.BasicRotors` module.
 
 * `read_files(files)` - reads contents of files, and returns files with a property called `contents`
 * `copy_files(files, destination_dir)` - copies files to destination_dir
@@ -131,21 +161,21 @@ You can also write your own. Check the *"Writing custom rotors"* section below.
 
 * To remove a watch group
 
-    ```elixir
-    Rotor.stop_watching(name)
-    ```
+  ```elixir
+  Rotor.stop_watching(name)
+  ```
 
 * To list all watch groups
 
-    ```elixir
-    Rotor.all
-    ```
+  ```elixir
+  Rotor.all
+  ```
 
 * To run a watch group's rotor function forcefully
 
-    ```elixir
-    Rotor.run(name)
-    ```
+  ```elixir
+  Rotor.run(name)
+  ```
 
 ### Examples
 
