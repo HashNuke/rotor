@@ -3,7 +3,7 @@ defmodule Rotor.Mixfile do
 
   def project do
     [app: :rotor,
-     version: "0.3",
+     version: "0.3.0",
      elixir: ">= 1.0.0",
      description: description,
      package: package,
