@@ -22,8 +22,6 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 * Define watch groups in `config/rotors.exs`
 * Run `Rotor.start` in your `IEx` console to run the rotors
 
-You can also start Rotor anywhere in your code
-
 ### Example 1: Reload Elixir modules whenever they change
 
 ```elixir
@@ -81,36 +79,11 @@ A set of paths you want to watch is called a *Watch group"*. Each watch group ha
 
 `config/rotors.exs` is prefered. But if you want to define them elsewhere feel free. Take a look at examples
 
-#### How to run in only certain environments?
+#### How to run them?
 
-Lets say you want to run rotor only in development environment. In `mix.exs` of your project, the `application` function usually looks like this:
+Run `Rotor.start` in your `IEx` console to run the rotors.
 
-```elixir
-def application do
-  [applications: [:logger],
-   mod: {YourApp, []}]
-end
-```
-
-you can change that to something like the following:
-
-```elixir
-def application do
-  [applications: app_list(Mix.env),
-   mod: {YourApp, []}]
-end
-
-# For dev env we start rotor along with other apps
-defp app_list(:dev) do
-  app_list(:prod) ++ [:rotor]
-end
-
-# For all other env we only start logger
-defp app_list(_) do
-  [:logger]
-end
-```
-
+You can also automate this by adding `Rotor.start` somewhere in your code. But be careful ~!
 
 #### How to define watch groups?
 
