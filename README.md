@@ -19,9 +19,10 @@ Rotor is a build system for Elixir projects. Use it to compile things, run comma
 ### Usage
 
 * Add rotor as a dependency to your `mix.exs`
-* Add `:rotor` to your app's start list (read below)
 * Define watch groups in `config/rotors.exs`
+* Run `Rotor.start` in your `IEx` console to run the rotors
 
+You can also start Rotor anywhere in your code
 
 ### Example 1: Reload Elixir modules whenever they change
 

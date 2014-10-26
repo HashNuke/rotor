@@ -14,6 +14,11 @@ defmodule Rotor do
   end
 
 
+  def start do
+    Application.start :rotor
+  end
+
+
   defdelegate group_info(name), to: Rotor.GroupServer, as: :get
   defdelegate all(),     to: Rotor.GroupServer, as: :all
 
